@@ -466,94 +466,183 @@ function Research() {
   );
 }
 
-const IPOS = [
-  { name: "Bharat Skies", band: "₹ 420 – 445", sub: "8.2x", status: "Live" },
-  { name: "Nova Energy", band: "₹ 210 – 235", sub: "4.1x", status: "Day 2" },
-  { name: "Orion Tech", band: "₹ 785 – 820", sub: "12.6x", status: "Closing" },
+const IPO_CATEGORIES = [
+  {
+    title: "Open IPOs",
+    count: "12 Active",
+    icon: Unlock,
+    color: "oklch(0.58 0.22 295)",
+  },
+  {
+    title: "Upcoming IPOs",
+    count: "8 Opening Soon",
+    icon: CalendarDays,
+    color: "oklch(0.62 0.2 255)",
+  },
+  {
+    title: "Listed IPOs",
+    count: "45 Listed",
+    icon: CheckCircle2,
+    color: "oklch(0.72 0.14 220)",
+  },
+  {
+    title: "IPO Reviews",
+    count: "120+ Reviews",
+    icon: MessageSquare,
+    color: "oklch(0.55 0.2 310)",
+  },
 ];
+
+const FEATURED_IPO = {
+  name: "NovaTech Solutions Ltd.",
+  logo: "NS",
+  priceBand: "₹ 450 – 475",
+  openDate: "15 Jul 2026",
+  closeDate: "17 Jul 2026",
+  gmp: "+₹ 285",
+  subscription: "12.5x",
+  rating: "4.8",
+  recommendation: "Subscribe",
+};
 
 function IPO() {
   return (
     <section id="ipo" className="py-16 md:py-24">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-          <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-purple">
-              IPO Research
-            </div>
-            <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-              Never miss the next{" "}
-              <span className="text-gradient">multibagger IPO.</span>
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Live GMP tracking, deep valuation notes, allotment probability and
-              subscribe/avoid views — the moment the mandate opens.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {[
-                "SEBI DRHP breakdowns in plain English",
-                "Peer valuation & anchor investor analysis",
-                "Real-time subscription and GMP tracker",
-                "One-click apply via UPI (all brokers)",
-              ].map((t) => (
-                <li key={t} className="flex items-start gap-3">
-                  <div className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gradient-brand text-white">
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                  </div>
-                  <span className="text-sm text-foreground/80">{t}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="rounded-3xl glass-strong p-5 md:p-7">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2.5 w-2.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-foreground/70">
-                  Live IPO Board
-                </span>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                Updated just now
-              </span>
-            </div>
-            <div className="mt-5 space-y-3">
-              {IPOS.map((ipo) => (
+        <SectionHeader
+          eyebrow="IPO Center"
+          title="Your complete IPO intelligence desk."
+          desc="Track open, upcoming and listed IPOs. Read expert reviews and get real-time GMP & subscription updates."
+        />
+
+        {/* Category Cards */}
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {IPO_CATEGORIES.map(({ title, count, icon: Icon, color }) => (
+            <div
+              key={title}
+              className="group relative overflow-hidden rounded-3xl glass p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-glow)]"
+            >
+              <div
+                className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-30"
+                style={{ background: color }}
+              />
+              <div className="relative">
                 <div
-                  key={ipo.name}
-                  className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-2xl bg-white/80 p-4 transition-all hover:shadow-[var(--shadow-soft)]"
+                  className="grid h-12 w-12 place-items-center rounded-2xl text-white shadow-[var(--shadow-soft)]"
+                  style={{ background: `linear-gradient(135deg, ${color}, oklch(0.78 0.13 210))` }}
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-display text-base font-bold">
-                      {ipo.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Price band {ipo.band}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-right">
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Subscribed
-                      </p>
-                      <p className="text-sm font-extrabold text-gradient">
-                        {ipo.sub}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-gradient-brand px-3 py-1.5 text-[10px] font-bold uppercase text-white">
-                      {ipo.status}
-                    </span>
-                  </div>
+                  <Icon className="h-6 w-6" />
                 </div>
-              ))}
+                <h3 className="mt-5 font-display text-lg font-bold text-foreground">
+                  {title}
+                </h3>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  {count}
+                </p>
+              </div>
             </div>
-            <Button className="mt-5 w-full rounded-2xl bg-gradient-brand text-white hover:opacity-95">
-              View All IPOs <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
+          ))}
+        </div>
+
+        {/* Featured IPO Card */}
+        <div className="mt-8 rounded-[2rem] glass-strong p-6 md:p-10">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+            </span>
+            <span className="text-xs font-bold uppercase tracking-wider text-foreground/70">
+              Featured IPO
+            </span>
           </div>
+
+          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-xl font-bold text-white shadow-[var(--shadow-soft)]">
+                {FEATURED_IPO.logo}
+              </div>
+              <div>
+                <h3 className="font-display text-2xl font-extrabold tracking-tight text-foreground">
+                  {FEATURED_IPO.name}
+                </h3>
+                <div className="mt-2 flex flex-wrap items-center gap-3">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-foreground/80">
+                    <Building2 className="h-3.5 w-3.5 text-brand-purple" />
+                    Price Band: {FEATURED_IPO.priceBand}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-foreground/80">
+                    <CalendarDays className="h-3.5 w-3.5 text-brand-blue" />
+                    {FEATURED_IPO.openDate} – {FEATURED_IPO.closeDate}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 lg:gap-4 xl:grid-cols-4">
+              <div className="rounded-2xl bg-white/70 p-4 text-center">
+                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <TrendingUp className="h-3 w-3" /> GMP
+                </div>
+                <p className="mt-1 text-lg font-extrabold text-emerald-600">
+                  {FEATURED_IPO.gmp}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/70 p-4 text-center">
+                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Users className="h-3 w-3" /> Subscription
+                </div>
+                <p className="mt-1 text-lg font-extrabold text-gradient">
+                  {FEATURED_IPO.subscription}
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/70 p-4 text-center">
+                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Award className="h-3 w-3" /> Rating
+                </div>
+                <p className="mt-1 text-lg font-extrabold text-amber-500">
+                  {FEATURED_IPO.rating}
+                  <span className="text-xs font-medium text-muted-foreground"> /5</span>
+                </p>
+              </div>
+              <div className="rounded-2xl bg-white/70 p-4 text-center">
+                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <ThumbsUp className="h-3 w-3" /> Recommendation
+                </div>
+                <p className="mt-1 text-sm font-extrabold text-emerald-600">
+                  {FEATURED_IPO.recommendation}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" />
+              <span>Updated 2 minutes ago • SEBI DRHP reviewed</span>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                variant="outline"
+                className="rounded-full border-2 bg-white/60 px-6 font-semibold hover:bg-white"
+              >
+                Read Review <ArrowRight className="ml-1 h-4 w-4" />
+              </Button>
+              <Button className="rounded-full bg-gradient-brand px-6 text-white shadow-[var(--shadow-soft)] hover:opacity-95">
+                Apply Now <Rocket className="ml-1 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* View All */}
+        <div className="mt-8 text-center">
+          <Button
+            variant="outline"
+            size="lg"
+            className="rounded-full border-2 bg-white/60 px-8 font-semibold hover:bg-white"
+          >
+            View All IPOs <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       </div>
     </section>
