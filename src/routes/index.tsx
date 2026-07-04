@@ -22,6 +22,14 @@ import {
   Layers,
   Wallet,
   GraduationCap,
+  Unlock,
+  CalendarDays,
+  CheckCircle2,
+  MessageSquare,
+  Building2,
+  Award,
+  ThumbsUp,
+  Eye,
 } from "lucide-react";
 import heroImg from "@/assets/hero-dashboard.jpg";
 import { Button } from "@/components/ui/button";
