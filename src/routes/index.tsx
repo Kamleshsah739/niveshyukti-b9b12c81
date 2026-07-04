@@ -650,46 +650,75 @@ function How() {
   );
 }
 
-const PLANS = [
-  {
-    name: "Starter",
-    price: "₹ 0",
-    period: "forever",
-    desc: "Explore the platform with delayed research.",
-    features: ["Daily market brief", "IPO calendar", "Community access"],
-    cta: "Start Free",
-    featured: false,
-  },
-  {
-    name: "Premium",
-    price: "₹ 1,499",
-    period: "per month",
-    desc: "The full research desk for serious investors.",
-    features: [
-      "Live equity + swing calls",
-      "IPO subscribe/avoid views",
-      "Options strategies",
-      "One-click broker execution",
-      "Priority WhatsApp alerts",
-    ],
-    cta: "Become Premium",
-    featured: true,
-  },
-  {
-    name: "Elite",
-    price: "₹ 3,999",
-    period: "per month",
-    desc: "1-on-1 access to our analyst team.",
-    features: [
-      "Everything in Premium",
-      "1:1 analyst calls",
-      "Portfolio review",
-      "Custom strategies",
-    ],
-    cta: "Talk to us",
-    featured: false,
-  },
+const PRICING_FEATURES = [
+  "Premium Equity Research",
+  "Options Research",
+  "IPO Research",
+  "Live Market Alerts",
+  "Trade Execution",
+  "Email Support",
 ];
+
+function PricingCard({
+  plan,
+  original,
+  offer,
+  badge,
+  badgeColor,
+  featured,
+}: {
+  plan: string;
+  original: string;
+  offer: string;
+  badge: string;
+  badgeColor: string;
+  featured?: boolean;
+}) {
+  return (
+    <div
+      className={`relative flex flex-col rounded-[2rem] p-7 transition-all duration-300 hover:-translate-y-2 hover:shadow-[var(--shadow-glow)] ${
+        featured
+          ? "glass-strong ring-2 ring-brand-purple/40"
+          : "glass"
+      }`}
+    >
+      {featured && (
+        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-gradient-brand px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-white shadow-md">
+          Most Popular
+        </div>
+      )}
+      <div className="text-xs font-bold uppercase tracking-widest text-brand-purple">
+        {plan}
+      </div>
+      <div className="mt-5 flex items-center gap-3">
+        <span className="text-lg text-muted-foreground line-through">
+          {original}
+        </span>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${badgeColor}`}
+        >
+          {badge}
+        </span>
+      </div>
+      <div className="mt-1 font-display text-5xl font-extrabold tracking-tight text-foreground">
+        {offer}
+      </div>
+      <ul className="mt-6 flex-1 space-y-3">
+        {PRICING_FEATURES.map((f) => (
+          <li key={f} className="flex items-start gap-2.5 text-sm text-foreground/85">
+            <div className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-gradient-brand">
+              <Check className="h-3 w-3 text-white" strokeWidth={3} />
+            </div>
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <Button className="mt-7 w-full rounded-full bg-gradient-brand text-white font-semibold shadow-[var(--shadow-soft)] hover:opacity-95 transition-opacity">
+        Join Now
+      </Button>
+    </div>
+  );
+}
 
 function Pricing() {
   return (
@@ -697,80 +726,32 @@ function Pricing() {
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Pricing"
-          title="Simple plans. Serious value."
-          desc="Cancel anytime. No hidden fees. GST included."
+          title="Invest in your wealth."
+          desc="Premium research at a fraction of the cost. No hidden fees. GST included."
         />
-        <div className="mt-12 grid gap-5 lg:grid-cols-3">
-          {PLANS.map((p) => (
-            <div
-              key={p.name}
-              className={`relative flex flex-col rounded-3xl p-7 transition-all hover:-translate-y-1 ${
-                p.featured
-                  ? "bg-gradient-brand text-white shadow-[var(--shadow-glow)]"
-                  : "glass"
-              }`}
-            >
-              {p.featured && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-purple shadow-md">
-                  Most Popular
-                </div>
-              )}
-              <div
-                className={`text-xs font-bold uppercase tracking-widest ${
-                  p.featured ? "text-white/80" : "text-brand-purple"
-                }`}
-              >
-                {p.name}
-              </div>
-              <div className="mt-4 flex items-baseline gap-2">
-                <span className="font-display text-4xl font-extrabold">
-                  {p.price}
-                </span>
-                <span
-                  className={`text-sm ${
-                    p.featured ? "text-white/80" : "text-muted-foreground"
-                  }`}
-                >
-                  / {p.period}
-                </span>
-              </div>
-              <p
-                className={`mt-2 text-sm ${
-                  p.featured ? "text-white/85" : "text-muted-foreground"
-                }`}
-              >
-                {p.desc}
-              </p>
-              <ul className="mt-6 flex-1 space-y-3">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm">
-                    <div
-                      className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full ${
-                        p.featured ? "bg-white/25" : "bg-gradient-brand"
-                      }`}
-                    >
-                      <Check
-                        className={`h-3 w-3 ${
-                          p.featured ? "text-white" : "text-white"
-                        }`}
-                        strokeWidth={3}
-                      />
-                    </div>
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className={`mt-7 w-full rounded-full font-semibold ${
-                  p.featured
-                    ? "bg-white text-brand-purple hover:bg-white/90"
-                    : "bg-gradient-brand text-white hover:opacity-95"
-                }`}
-              >
-                {p.cta}
-              </Button>
-            </div>
-          ))}
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <PricingCard
+            plan="Monthly Plan"
+            original="₹10,000"
+            offer="₹2,999"
+            badge="Limited Time Offer"
+            badgeColor="bg-emerald-50 text-emerald-700"
+          />
+          <PricingCard
+            plan="Quarterly Plan"
+            original="₹20,000"
+            offer="₹5,999"
+            badge="Save 70%"
+            badgeColor="bg-emerald-50 text-emerald-700"
+            featured
+          />
+          <PricingCard
+            plan="Yearly Plan"
+            original="₹35,000"
+            offer="₹12,999"
+            badge="Best Value"
+            badgeColor="bg-emerald-50 text-emerald-700"
+          />
         </div>
       </div>
     </section>
