@@ -1,5 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { supabase } from "@/lib/supabase/client";
+import type { User } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+
+import {
+  createFileRoute,
+  useNavigate,
+} from "@tanstack/react-router";
+
 import {
   Menu,
   X,
@@ -31,6 +46,7 @@ import {
   ThumbsUp,
   Eye,
 } from "lucide-react";
+
 import heroImg from "@/assets/hero-dashboard.jpg";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +55,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -47,7 +62,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Premium financial research platform. SEBI-compliant equity research, IPO analysis, options strategies and one-click broker execution.",
+          "Premium financial research platform. SEBI-compliant equity research, IPO analysis and recommendation-only research on stocks, F&O and commodities.",
       },
     ],
   }),
@@ -84,14 +99,55 @@ function Logo() {
 }
 
 function Nav() {
+  const navigate = useNavigate();
+
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 12);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    async function loadUser() {
+      const { data } = await supabase.auth.getUser();
+      setUser(data.user);
+      if (data.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+        setRole(profile?.role ?? null);
+      }
+    }
+
+    loadUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data: profile }) => setRole(profile?.role ?? null));
+      } else {
+        setRole(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
@@ -117,15 +173,62 @@ function Nav() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="hidden sm:inline-flex rounded-full text-sm font-semibold"
-            >
-              Login
-            </Button>
-            <Button className="hidden sm:inline-flex rounded-full bg-gradient-brand text-white shadow-[var(--shadow-soft)] hover:opacity-95">
-              Get Started
-            </Button>
+            {user ? (
+  <DropdownMenu>
+    <DropdownMenuTrigger asChild>
+      <button className="flex items-center gap-3 rounded-full border px-3 py-2 hover:bg-gray-50">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white font-bold">
+          {user.user_metadata?.full_name?.charAt(0) ??
+            user.email?.charAt(0).toUpperCase()}
+        </div>
+
+        <span className="hidden md:block font-semibold">
+          {user.user_metadata?.full_name ?? user.email}
+        </span>
+      </button>
+    </DropdownMenuTrigger>
+
+    <DropdownMenuContent align="end">
+      <DropdownMenuItem
+        onClick={() => navigate({ to: "/dashboard" })}
+      >
+        Dashboard
+      </DropdownMenuItem>
+
+      {role === "super_admin" ? (
+        <DropdownMenuItem
+          onClick={() => navigate({ to: "/admin" })}
+        >
+          Super Admin Panel
+        </DropdownMenuItem>
+      ) : null}
+
+      <DropdownMenuSeparator />
+
+      <DropdownMenuItem
+        onClick={async () => {
+          await supabase.auth.signOut();
+          navigate({ to: "/" });
+        }}
+      >
+        Logout
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+) : (
+              <Button
+                variant="ghost"
+                className="hidden sm:inline-flex rounded-full text-sm font-semibold"
+                onClick={() => navigate({ to: "/auth/login" })}
+              >
+                Login
+              </Button>
+            )}
+            {!user ? (
+              <Button className="hidden sm:inline-flex rounded-full bg-gradient-brand text-white shadow-[var(--shadow-soft)] hover:opacity-95">
+                Get Started
+              </Button>
+            ) : null}
             <button
               onClick={() => setOpen((v) => !v)}
               className="lg:hidden grid h-10 w-10 place-items-center rounded-full glass"
@@ -149,12 +252,41 @@ function Nav() {
                 </a>
               ))}
               <div className="mt-2 grid grid-cols-2 gap-2 px-1">
-                <Button variant="outline" className="rounded-full">
-                  Login
-                </Button>
-                <Button className="rounded-full bg-gradient-brand text-white">
-                  Get Started
-                </Button>
+                {user ? (
+                  <div className="flex items-center gap-3 px-2 py-2">
+                    <img
+                      src={user.user_metadata.avatar_url}
+                      alt=""
+                      className="h-10 w-10 rounded-full"
+                    />
+
+                    <div>
+                      <p className="font-semibold">
+                        {user.user_metadata.full_name}
+                      </p>
+
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => navigate({ to: "/auth/login" })}
+                    >
+                      Login
+                    </Button>
+
+                    {!user ? (
+                      <Button className="rounded-full bg-gradient-brand text-white">
+                        Get Started
+                      </Button>
+                    ) : null}
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -167,7 +299,7 @@ function Nav() {
 const TRUST = [
   { icon: ShieldCheck, label: "SEBI Compliant Research" },
   { icon: BadgeCheck, label: "NISM Certified Analyst" },
-  { icon: Zap, label: "One-Click Broker Execution" },
+  { icon: Zap, label: "Recommendation Only" },
   { icon: Radio, label: "Live IPO Tracking" },
 ];
 
@@ -191,8 +323,7 @@ function Hero() {
             </h1>
             <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
               Professional research, IPO analysis, options strategies, and
-              instant broker execution — all in one premium platform built for
-              serious Indian investors.
+              recommendation-only reports for stocks, F&O and commodities — all in one premium platform built for serious Indian investors.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button
@@ -334,8 +465,8 @@ const WHY = [
   },
   {
     icon: Zap,
-    title: "One-Click Execution",
-    desc: "Trade directly via Zerodha, Groww, Upstox and other leading brokers.",
+    title: "Recommendation Only",
+    desc: "Actionable research ideas for stocks, F&O and commodity trades without execution pressure.",
   },
   {
     icon: LineChart,
@@ -411,9 +542,9 @@ const CATEGORIES = [
   },
   {
     icon: BarChart3,
-    title: "Options Strategies",
+    title: "F&O & Commodity Ideas",
     tag: "F&O",
-    desc: "Hedged spreads, iron condors and directional plays.",
+    desc: "High-conviction FNO and commodity recommendations with defined risk plans.",
     stat: "Risk-Defined",
   },
   {
@@ -705,8 +836,8 @@ const STEPS = [
   },
   {
     icon: Wallet,
-    title: "Connect your broker",
-    desc: "Link Zerodha, Groww or Upstox for one-click execution.",
+    title: "Review the call",
+    desc: "See entry, stop loss, target and risk grade before placing a trade.",
   },
   {
     icon: TrendingUp,
@@ -715,8 +846,8 @@ const STEPS = [
   },
   {
     icon: Zap,
-    title: "Execute & grow",
-    desc: "Trade in one tap. Track P&L. Compound over time.",
+    title: "Track outcomes & learn",
+    desc: "Monitor past performance to refine your strategy over time.",
   },
 ];
 
@@ -978,8 +1109,8 @@ const FAQS = [
     a: "Yes. All our research is published under SEBI Research Analyst compliance and is delivered by NISM-certified analysts.",
   },
   {
-    q: "Which brokers can I connect?",
-    a: "Zerodha, Groww, Upstox, Angel One, ICICI Direct and 10+ more brokers are supported for one-click execution.",
+    q: "How do I act on research?",
+    a: "Apply the recommendation through your broker or trading app — we publish the research, you place the trade.",
   },
   {
     q: "Are past performance figures verified?",
@@ -987,7 +1118,7 @@ const FAQS = [
   },
   {
     q: "Can I cancel my Premium plan anytime?",
-    a: "Absolutely. Plans are month-on-month with no long-term lock-in. Cancel from your dashboard in one click.",
+    a: "Absolutely. Plans are month-on-month with no long-term lock-in. Cancel from your dashboard anytime.",
   },
   {
     q: "Do you offer 1-on-1 support?",
@@ -1039,7 +1170,7 @@ function CTA() {
               </h2>
               <p className="mt-4 max-w-xl text-white/85">
                 Join 10,000+ investors who trust Nivesh Yukti for premium
-                research, IPO analysis and one-click execution.
+                research, IPO analysis and recommendation-only market reports.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-end">

@@ -8,10 +8,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { supabase } from "@/lib/supabase/client";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -37,10 +37,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -78,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Nivesh Yukti — Let Your Money Make More Money" },
-      { name: "description", content: "SEBI-compliant research, IPO analysis, options strategies and one-click broker execution — Nivesh Yukti is your premium financial research platform." },
+      { name: "description", content: "SEBI-compliant research, IPO analysis and recommendation-only research on stocks, F&O and commodities — backed by transparent performance tracking.", },
       { name: "author", content: "Nivesh Yukti" },
       { property: "og:title", content: "Nivesh Yukti — Smart Research. Smarter Investments." },
       { property: "og:description", content: "Professional research, IPO analysis and instant broker execution in one premium platform." },
@@ -115,12 +111,17 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
+  const { queryClient } = Route.useRouteContext()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      console.log("Logged in user:", data.user)
+    })
+  }, [])
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
-  );
+  )
 }

@@ -6,10 +6,32 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const disableLovableSourceTagging = {
+  name: "disable-lovable-source-tagging",
+  enforce: "pre",
+  config(config, env) {
+    if (env.command === "serve" && env.mode === "development") {
+      return {
+        ...config,
+        plugins: config.plugins?.filter((plugin) => plugin?.name !== "lovable-plugin"),
+      };
+    }
+    return config;
+  },
+  configResolved(config) {
+    if (config.command === "serve" && config.mode === "development") {
+      config.plugins = config.plugins.filter((plugin) => plugin?.name !== "lovable-plugin");
+    }
+  },
+};
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
+  },
+  vite: {
+    plugins: [disableLovableSourceTagging],
   },
 });
