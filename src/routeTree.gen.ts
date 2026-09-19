@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScreenerRouteImport } from './routes/screener'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as IpoRouteImport } from './routes/ipo'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -16,6 +17,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
+const ScreenerRoute = ScreenerRouteImport.update({
+  id: '/screener',
+  path: '/screener',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PremiumRoute = PremiumRouteImport.update({
   id: '/premium',
   path: '/premium',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
+  '/screener': typeof ScreenerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
+  '/screener': typeof ScreenerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
+  '/screener': typeof ScreenerRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
@@ -79,16 +88,25 @@ export interface FileRouteTypes {
     | '/admin'
     | '/ipo'
     | '/premium'
+    | '/screener'
     | '/auth/callback'
     | '/auth/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/ipo' | '/premium' | '/auth/callback' | '/auth/login'
+  to:
+    | '/'
+    | '/admin'
+    | '/ipo'
+    | '/premium'
+    | '/screener'
+    | '/auth/callback'
+    | '/auth/login'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/ipo'
     | '/premium'
+    | '/screener'
     | '/auth/callback'
     | '/auth/login'
   fileRoutesById: FileRoutesById
@@ -98,12 +116,20 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   IpoRoute: typeof IpoRoute
   PremiumRoute: typeof PremiumRoute
+  ScreenerRoute: typeof ScreenerRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/screener': {
+      id: '/screener'
+      path: '/screener'
+      fullPath: '/screener'
+      preLoaderRoute: typeof ScreenerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/premium': {
       id: '/premium'
       path: '/premium'
@@ -154,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   IpoRoute: IpoRoute,
   PremiumRoute: PremiumRoute,
+  ScreenerRoute: ScreenerRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthLoginRoute: AuthLoginRoute,
 }
