@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { getAccessLevel } from "@/lib/access";
 
 export const Route = createFileRoute("/auth/callback")({
   component: CallbackPage,
@@ -99,8 +100,8 @@ function CallbackPage() {
           window.location.replace("/admin");
           return;
         }
-
-        window.location.replace("/dashboard");
+        const access = await getAccessLevel(session.user.id);
+        window.location.replace(access === "premium" ? "/premium" : "/");
       } catch (e) {
         console.error(e);
         window.location.replace("/auth/login");

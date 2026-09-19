@@ -24,7 +24,6 @@ import {
   Radio,
   TrendingUp,
   LineChart,
-  Rocket,
   BookOpen,
   Target,
   BarChart3,
@@ -37,17 +36,14 @@ import {
   Layers,
   Wallet,
   GraduationCap,
-  Unlock,
-  CalendarDays,
-  CheckCircle2,
-  MessageSquare,
-  Building2,
-  Award,
-  ThumbsUp,
-  Eye,
+  Camera,
+  Send,
+  Play,
+  MessageCircle,
+  Newspaper,
+  Clock3,
 } from "lucide-react";
 
-import heroImg from "@/assets/hero-dashboard.jpg";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -55,6 +51,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import UserIpoSection from "@/components/ipo/UserIpoSection";
+import StockResearchHub from "@/components/dashboard/StockResearchHub";
+import HomeRecommendationCarousel from "@/components/landing/HomeRecommendationCarousel";
+import InvestorToolsHub from "@/components/landing/InvestorToolsHub";
+import ResearchSignupPrompt from "@/components/landing/ResearchSignupPrompt";
+import MarketNewsSection from "@/components/landing/MarketNewsSection";
+import { getAccessLevel, type AccessLevel } from "@/lib/access";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -62,7 +65,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Premium financial research platform. SEBI-compliant equity research, IPO analysis and recommendation-only research on stocks, F&O and commodities.",
+          "Premium financial research platform. SEBI-compliant equity research, IPO analysis and research-only research on stocks, F&O and commodities.",
       },
     ],
   }),
@@ -72,12 +75,14 @@ export const Route = createFileRoute("/")({
 const NAV = [
   { label: "Home", href: "#home" },
   { label: "Research", href: "#research" },
+  { label: "Investor Tools", href: "#tools" },
+  { label: "News & Updates", href: "#news" },
   { label: "IPO", href: "#ipo" },
   { label: "Performance", href: "#performance" },
   { label: "Pricing", href: "#pricing" },
   { label: "Academy", href: "#academy" },
   { label: "About", href: "#about" },
-  { label: "Contact", href: "#contact" },
+  { label: "Community", href: "#Community" },
 ];
 
 function Logo() {
@@ -105,6 +110,7 @@ function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [access, setAccess] = useState<AccessLevel>("user");
 
   useEffect(() => {
     async function loadUser() {
@@ -117,6 +123,7 @@ function Nav() {
           .eq("id", data.user.id)
           .single();
         setRole(profile?.role ?? null);
+        if (data.user) setAccess(await getAccessLevel(data.user.id));
       }
     }
 
@@ -133,8 +140,10 @@ function Nav() {
           .eq("id", session.user.id)
           .single()
           .then(({ data: profile }) => setRole(profile?.role ?? null));
+        getAccessLevel(session.user.id).then(setAccess);
       } else {
         setRole(null);
+        setAccess("user");
       }
     });
 
@@ -151,22 +160,22 @@ function Nav() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
-        scrolled ? "py-2" : "py-4"
+        scrolled ? "py-1" : "py-2"
       }`}
     >
-      <div className="mx-auto max-w-7xl px-4">
+      <div className="mx-auto max-w-7xl px-3 md:px-4">
         <div
-          className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 rounded-2xl px-4 py-2.5 transition-all lg:grid-cols-[auto_1fr_auto] ${
+          className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2.5 rounded-2xl px-3 py-1.5 transition-all lg:grid-cols-[auto_1fr_auto] ${
             scrolled ? "glass-strong" : "glass"
           }`}
         >
           <Logo />
-          <nav className="hidden lg:flex items-center justify-center gap-1">
+          <nav className="hidden lg:flex items-center justify-center gap-0.5">
             {NAV.map((n) => (
               <a
                 key={n.label}
                 href={n.href}
-                className="rounded-full px-3.5 py-1.5 text-sm font-medium text-foreground/75 transition-colors hover:bg-white/70 hover:text-foreground"
+                className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-foreground/80 transition-colors hover:bg-white/70 hover:text-foreground"
               >
                 {n.label}
               </a>
@@ -174,48 +183,42 @@ function Nav() {
           </nav>
           <div className="flex items-center gap-2">
             {user ? (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <button className="flex items-center gap-3 rounded-full border px-3 py-2 hover:bg-gray-50">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white font-bold">
-          {user.user_metadata?.full_name?.charAt(0) ??
-            user.email?.charAt(0).toUpperCase()}
-        </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-3 rounded-full border border-border bg-card/75 px-3 py-1.5 text-foreground hover:bg-card">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white font-bold">
+                      {user.user_metadata?.full_name?.charAt(0) ??
+                        user.email?.charAt(0).toUpperCase()}
+                    </div>
 
-        <span className="hidden md:block font-semibold">
-          {user.user_metadata?.full_name ?? user.email}
-        </span>
-      </button>
-    </DropdownMenuTrigger>
+                    <span className="hidden md:block text-sm font-semibold">
+                      {user.user_metadata?.full_name ?? user.email}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
 
-    <DropdownMenuContent align="end">
-      <DropdownMenuItem
-        onClick={() => navigate({ to: "/dashboard" })}
-      >
-        Dashboard
-      </DropdownMenuItem>
+                <DropdownMenuContent align="end">
+                  {access === "premium" ? <DropdownMenuItem onClick={() => navigate({ to: "/premium" })}>Premium research</DropdownMenuItem> : null}
 
-      {role === "super_admin" ? (
-        <DropdownMenuItem
-          onClick={() => navigate({ to: "/admin" })}
-        >
-          Super Admin Panel
-        </DropdownMenuItem>
-      ) : null}
+                  {role === "super_admin" ? (
+                    <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
+                      Super Admin Panel
+                    </DropdownMenuItem>
+                  ) : null}
 
-      <DropdownMenuSeparator />
+                  <DropdownMenuSeparator />
 
-      <DropdownMenuItem
-        onClick={async () => {
-          await supabase.auth.signOut();
-          navigate({ to: "/" });
-        }}
-      >
-        Logout
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-) : (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      navigate({ to: "/" });
+                    }}
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
               <Button
                 variant="ghost"
                 className="hidden sm:inline-flex rounded-full text-sm font-semibold"
@@ -224,11 +227,13 @@ function Nav() {
                 Login
               </Button>
             )}
+
             {!user ? (
-              <Button className="hidden sm:inline-flex rounded-full bg-gradient-brand text-white shadow-[var(--shadow-soft)] hover:opacity-95">
-                Get Started
+              <Button asChild className="hidden sm:inline-flex rounded-full bg-gradient-brand text-white shadow-[var(--shadow-soft)] hover:opacity-95">
+                <a href="/auth/login">Get Started</a>
               </Button>
             ) : null}
+
             <button
               onClick={() => setOpen((v) => !v)}
               className="lg:hidden grid h-10 w-10 place-items-center rounded-full glass"
@@ -238,19 +243,21 @@ function Nav() {
             </button>
           </div>
         </div>
+
         {open && (
-          <div className="lg:hidden mt-2 glass-strong rounded-2xl p-3 animate-rise">
+          <div className="lg:hidden mt-2 glass-strong rounded-2xl p-2.5 animate-rise">
             <div className="flex flex-col">
               {NAV.map((n) => (
                 <a
                   key={n.label}
                   href={n.href}
                   onClick={() => setOpen(false)}
-                  className="rounded-xl px-4 py-3 text-sm font-medium text-foreground/80 hover:bg-white/80"
+                  className="rounded-xl px-4 py-2.5 text-[13px] font-semibold text-foreground/80 hover:bg-white/80"
                 >
                   {n.label}
                 </a>
               ))}
+
               <div className="mt-2 grid grid-cols-2 gap-2 px-1">
                 {user ? (
                   <div className="flex items-center gap-3 px-2 py-2">
@@ -261,13 +268,8 @@ function Nav() {
                     />
 
                     <div>
-                      <p className="font-semibold">
-                        {user.user_metadata.full_name}
-                      </p>
-
-                      <p className="text-xs text-muted-foreground">
-                        {user.email}
-                      </p>
+                      <p className="font-semibold">{user.user_metadata.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{user.email}</p>
                     </div>
                   </div>
                 ) : (
@@ -281,8 +283,8 @@ function Nav() {
                     </Button>
 
                     {!user ? (
-                      <Button className="rounded-full bg-gradient-brand text-white">
-                        Get Started
+                      <Button asChild className="rounded-full bg-gradient-brand text-white">
+                        <a href="/auth/login">Get Started</a>
                       </Button>
                     ) : null}
                   </>
@@ -299,98 +301,157 @@ function Nav() {
 const TRUST = [
   { icon: ShieldCheck, label: "SEBI Compliant Research" },
   { icon: BadgeCheck, label: "NISM Certified Analyst" },
-  { icon: Zap, label: "Recommendation Only" },
+  { icon: Zap, label: "Research Only — No Execution" },
   { icon: Radio, label: "Live IPO Tracking" },
 ];
 
 function Hero() {
   return (
-    <section id="home" className="relative pt-32 pb-16 md:pt-40 md:pb-24">
+    <section id="home" className="relative pt-16 pb-8 md:pt-20 md:pb-10">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="grid gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-10 lg:items-center">
-          <div className="animate-rise">
-            <div className="inline-flex items-center gap-2 rounded-full glass px-3.5 py-1.5 text-xs font-semibold text-foreground/80">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-purple opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-purple" />
-              </span>
-              Let Your Money Make More Money
-            </div>
-            <h1 className="mt-5 font-display text-[42px] leading-[1.05] font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-[68px]">
-              Smart Research.
-              <br />
-              <span className="text-gradient">Smarter Investments.</span>
-            </h1>
-            <p className="mt-6 max-w-xl text-base text-muted-foreground sm:text-lg">
-              Professional research, IPO analysis, options strategies, and
-              recommendation-only reports for stocks, F&O and commodities — all in one premium platform built for serious Indian investors.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button
-                size="lg"
-                className="rounded-full bg-gradient-brand px-6 text-white shadow-[var(--shadow-glow)] hover:opacity-95"
-              >
-                Explore Research <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full border-2 bg-white/60 px-6 font-semibold backdrop-blur hover:bg-white"
-              >
-                Become Premium
-              </Button>
-            </div>
-            <div className="mt-10 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {TRUST.map(({ icon: Icon, label }) => (
-                <div
-                  key={label}
-                  className="flex items-start gap-2 rounded-2xl glass p-3"
+        <div className="relative overflow-hidden rounded-[1.5rem] border border-emerald-100/15 bg-[radial-gradient(circle_at_82%_18%,rgba(58,181,152,0.35)_0%,rgba(14,36,37,0.28)_34%,rgba(7,18,20,0.96)_68%),linear-gradient(145deg,#06130f_0%,#0e2a25_52%,#19443b_100%)] p-5 text-white shadow-[0_30px_80px_-24px_rgba(34,128,104,0.58)] md:p-7">
+          <div className="relative grid gap-7 lg:grid-cols-[1fr_0.95fr] lg:items-center">
+            <div className="animate-rise">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/90">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-cyan opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-cyan" />
+                </span>
+                SEBI Registered Advisory
+              </div>
+
+              <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-6xl">
+                Invest with clarity.
+                <br />
+                <span className="text-brand-cyan">Research that puts you first.</span>
+              </h1>
+
+              <p className="mt-4 max-w-xl text-sm leading-6 text-white/78 sm:text-base">
+                Independent research, market news, IPO analysis and timely recommendations for Indian investors. We never execute trades or handle your money.
+              </p>
+
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <Button
+                  asChild
+                  size="lg"
+                  className="rounded-full bg-brand-blue px-5 text-sm text-white shadow-[var(--shadow-glow)] hover:bg-brand-blue/90"
                 >
-                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-brand text-white">
-                    <Icon className="h-4 w-4" />
+                  <a href="#research">
+                    Explore Research <ArrowRight className="ml-1 h-4 w-4" />
+                  </a>
+                </Button>
+
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full border-2 border-white/35 bg-white/10 px-5 text-sm font-semibold text-white backdrop-blur hover:bg-white/20"
+                >
+                  <a href="#news">Market Updates</a>
+                </Button>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                {TRUST.map(({ icon: Icon, label }) => (
+                  <div
+                    key={label}
+                    className="flex min-h-[64px] items-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 px-3 py-2.5 shadow-[0_10px_30px_-18px_rgba(0,0,0,0.8)] backdrop-blur"
+                  >
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[linear-gradient(145deg,rgba(243,191,99,0.92),rgba(84,222,188,0.92))] text-white shadow-[0_8px_20px_-8px_rgba(84,222,188,0.65)]">
+                      <Icon className="h-4.5 w-4.5" />
+                    </div>
+                    <span className="text-[11px] font-bold leading-tight text-white/88 sm:text-xs">
+                      {label}
+                    </span>
                   </div>
-                  <span className="text-[11px] font-semibold leading-tight text-foreground/80">
-                    {label}
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <HomeRecommendationCarousel />
+              <div className="hidden">
+              <div className="relative overflow-hidden rounded-[1.5rem] border border-emerald-100/25 bg-[#071b18]/85 p-4 shadow-[var(--shadow-glow)] backdrop-blur sm:p-5">
+                <div className="mb-4 flex items-center justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/70 sm:text-xs">
+                  <span>Research Analyst Desk</span>
+                  <span className="rounded-full bg-emerald-300/20 px-3 py-1 text-emerald-200">
+                    Live Market Research
                   </span>
                 </div>
-              ))}
-            </div>
-          </div>
-          <div className="relative">
-            <div className="absolute -inset-8 rounded-[3rem] bg-gradient-brand opacity-30 blur-3xl" />
-            <div className="relative animate-float">
-              <img
-                src={heroImg}
-                alt="Nivesh Yukti mobile dashboard showing portfolio, IPO widgets and research recommendations"
-                width={1280}
-                height={1280}
-                className="relative w-full rounded-[2rem] shadow-[var(--shadow-glow)]"
-              />
-            </div>
-            <div className="absolute -left-2 top-10 glass-strong rounded-2xl p-3 shadow-[var(--shadow-soft)] hidden sm:flex items-center gap-2.5 animate-float [animation-delay:1s]">
-              <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-white">
-                <TrendingUp className="h-4 w-4" />
+
+                <div className="rounded-[1.25rem] border border-white/15 bg-[#03120f] p-4">
+                  <div className="grid gap-4 sm:grid-cols-[1.1fr_0.9fr]">
+                    <div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/45">
+                            Equity Research Call
+                          </p>
+                          <h3 className="mt-2 text-xl font-extrabold text-white">
+                            Reliance Industries
+                          </h3>
+                          <p className="mt-1 text-xs text-white/55">NSE: RELIANCE</p>
+                        </div>
+
+                        <div className="rounded-full bg-emerald-400/15 px-3 py-1 text-[10px] font-bold text-emerald-200">
+                          BUY
+                        </div>
+                      </div>
+
+                      <div className="mt-5 grid grid-cols-3 gap-2">
+                        {[
+                          ["Entry", "₹2,840"],
+                          ["Target", "₹3,120"],
+                          ["Stop Loss", "₹2,720"],
+                        ].map(([label, value]) => (
+                          <div key={label} className="rounded-xl bg-white/7 p-3">
+                            <p className="text-[9px] font-semibold uppercase tracking-wider text-white/45">
+                              {label}
+                            </p>
+                            <p className="mt-1 text-sm font-bold text-white">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="mb-2 flex items-center justify-between text-xs text-white/55">
+                          <span>Confidence Score</span>
+                          <span className="font-bold text-emerald-200">82%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-white/10">
+                          <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-brand-cyan to-emerald-300" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-white/7 p-4">
+                      <p className="text-[10px] font-semibold uppercase tracking-widest text-white/45">
+                        Analyst Notes
+                      </p>
+
+                      <div className="mt-3 space-y-2.5">
+                        {[
+                          "Breakout above resistance zone",
+                          "Strong delivery volume build-up",
+                          "Risk managed with defined stop loss",
+                        ].map((note) => (
+                          <div key={note} className="flex gap-2 text-xs leading-5 text-white/75">
+                            <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-300" />
+                            <span>{note}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="mt-4 rounded-xl border border-amber-200/20 bg-amber-300/10 p-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-200">
+                          Risk Level
+                        </p>
+                        <p className="mt-1 text-base font-bold text-white">Moderate</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="text-left">
-                <p className="text-[10px] font-medium text-muted-foreground">
-                  TCS • BUY
-                </p>
-                <p className="text-sm font-bold text-foreground">
-                  +12.4% <span className="text-emerald-600">▲</span>
-                </p>
-              </div>
-            </div>
-            <div className="absolute -right-2 bottom-16 glass-strong rounded-2xl p-3 shadow-[var(--shadow-soft)] hidden sm:flex items-center gap-2.5 animate-float [animation-delay:2s]">
-              <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-brand text-white">
-                <Rocket className="h-4 w-4" />
-              </div>
-              <div className="text-left">
-                <p className="text-[10px] font-medium text-muted-foreground">
-                  IPO Live
-                </p>
-                <p className="text-sm font-bold text-foreground">
-                  Subscribed 4.2x
-                </p>
               </div>
             </div>
           </div>
@@ -401,15 +462,15 @@ function Hero() {
 }
 
 const STATS = [
-  { value: "10,000+", label: "Active Investors" },
-  { value: "95%+", label: "Client Satisfaction" },
+  { value: "1,000+", label: "Active Investors" },
+  { value: "90%+", label: "Client Satisfaction" },
   { value: "500+", label: "Research Calls" },
   { value: "100%", label: "Transparent Reporting" },
 ];
 
 function Stats() {
   return (
-    <section className="pb-12 md:pb-20">
+    <section className="pb-10 md:pb-14">
       <div className="mx-auto max-w-7xl px-4">
         <div className="grid grid-cols-2 gap-3 rounded-3xl glass-strong p-4 md:grid-cols-4 md:gap-6 md:p-8">
           {STATS.map((s) => (
@@ -464,11 +525,6 @@ const WHY = [
     desc: "Every call is backed by rigorous analysis and full regulatory compliance.",
   },
   {
-    icon: Zap,
-    title: "Recommendation Only",
-    desc: "Actionable research ideas for stocks, F&O and commodity trades without execution pressure.",
-  },
-  {
     icon: LineChart,
     title: "Data-First Insights",
     desc: "Fundamentals, technicals and derivatives — combined into clear actions.",
@@ -476,7 +532,7 @@ const WHY = [
   {
     icon: Radio,
     title: "Real-Time Alerts",
-    desc: "Instant push, WhatsApp and email alerts when the market moves.",
+    desc: "Instant push, WhatsApp alerts when the market moves.",
   },
   {
     icon: Target,
@@ -485,21 +541,21 @@ const WHY = [
   },
   {
     icon: Users,
-    title: "10,000+ Investor Community",
+    title: "1,000+ Investor Community",
     desc: "Learn, share and grow with a curated community of serious investors.",
   },
 ];
 
 function Why() {
   return (
-    <section id="about" className="py-16 md:py-24">
+    <section id="about" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Why Nivesh Yukti"
           title="Built for investors who take investing seriously."
           desc="A premium research desk in your pocket — combining professional analysis with instant execution."
         />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {WHY.map(({ icon: Icon, title, desc }) => (
             <div
               key={title}
@@ -547,25 +603,18 @@ const CATEGORIES = [
     desc: "High-conviction FNO and commodity recommendations with defined risk plans.",
     stat: "Risk-Defined",
   },
-  {
-    icon: Rocket,
-    title: "IPO Analysis",
-    tag: "Primary",
-    desc: "GMP, valuation and subscribe/avoid recommendations.",
-    stat: "Live Tracking",
-  },
 ];
 
 function Research() {
   return (
-    <section id="research" className="py-16 md:py-24">
+    <section id="research" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Research Categories"
           title="Four desks. One platform."
           desc="From long-term compounders to high-conviction options plays — coverage across every strategy."
         />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map(({ icon: Icon, title, tag, desc, stat }) => (
             <div
               key={title}
@@ -592,188 +641,99 @@ function Research() {
             </div>
           ))}
         </div>
+        <div className="mt-8">
+          <StockResearchHub />
+        </div>
       </div>
     </section>
   );
 }
 
-const IPO_CATEGORIES = [
+const MARKET_UPDATES = [
   {
-    title: "Open IPOs",
-    count: "12 Active",
-    icon: Unlock,
-    color: "oklch(0.58 0.22 295)",
+    category: "Market outlook",
+    title: "The week ahead: key levels, events and sectors to watch",
+    summary:
+      "Our research desk maps the macro events, earnings themes and technical levels that could shape the week.",
+    time: "Weekly research note",
+    featured: true,
   },
   {
-    title: "Upcoming IPOs",
-    count: "8 Opening Soon",
-    icon: CalendarDays,
-    color: "oklch(0.62 0.2 255)",
+    category: "Company update",
+    title: "What to look for in the next earnings season",
+    summary:
+      "A focused checklist for interpreting management commentary, margins and guidance without the noise.",
+    time: "Research brief",
   },
   {
-    title: "Listed IPOs",
-    count: "45 Listed",
-    icon: CheckCircle2,
-    color: "oklch(0.72 0.14 220)",
-  },
-  {
-    title: "IPO Reviews",
-    count: "120+ Reviews",
-    icon: MessageSquare,
-    color: "oklch(0.55 0.2 310)",
+    category: "Investor education",
+    title: "How to read a recommendation and assess its risk",
+    summary:
+      "Understand time horizon, invalidation levels and why a research view is not a trade instruction.",
+    time: "Investor guide",
   },
 ];
 
-const FEATURED_IPO = {
-  name: "NovaTech Solutions Ltd.",
-  logo: "NS",
-  priceBand: "₹ 450 – 475",
-  openDate: "15 Jul 2026",
-  closeDate: "17 Jul 2026",
-  gmp: "+₹ 285",
-  subscription: "12.5x",
-  rating: "4.8",
-  recommendation: "Subscribe",
-};
+function News() {
+  return (
+    <section id="news" className="py-8 md:py-12">
+      <div className="mx-auto max-w-7xl px-4">
+        <SectionHeader
+          eyebrow="News & Updates"
+          title="Market context, without the noise."
+          desc="Stay informed with curated market updates, research notes and investor education from our analyst desk."
+        />
+        <div className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
+          {MARKET_UPDATES.map((update) => (
+            <article
+              key={update.title}
+              className={`group flex flex-col rounded-3xl p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-glow)] ${
+                update.featured
+                  ? "bg-[linear-gradient(145deg,#0a2924,#123c34)] text-white shadow-[var(--shadow-soft)]"
+                  : "glass"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div
+                  className={`grid h-11 w-11 place-items-center rounded-2xl ${
+                    update.featured ? "bg-white/12 text-brand-cyan" : "bg-gradient-brand text-white"
+                  }`}
+                >
+                  <Newspaper className="h-5 w-5" />
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                    update.featured ? "bg-white/10 text-white/75" : "bg-white/80 text-brand-purple"
+                  }`}
+                >
+                  {update.category}
+                </span>
+              </div>
+              <h3 className="mt-6 font-display text-xl font-extrabold leading-snug">{update.title}</h3>
+              <p className={`mt-3 flex-1 text-sm leading-relaxed ${update.featured ? "text-white/70" : "text-muted-foreground"}`}>
+                {update.summary}
+              </p>
+              <div className={`mt-6 flex items-center gap-2 border-t pt-4 text-xs font-semibold ${update.featured ? "border-white/15 text-white/65" : "border-border/60 text-muted-foreground"}`}>
+                <Clock3 className="h-3.5 w-3.5" />
+                {update.time}
+              </div>
+            </article>
+          ))}
+        </div>
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          Nivesh Yukti provides research and information only. We do not provide trade execution, broking, or portfolio management services.
+        </p>
+      </div>
+    </section>
+  );
+}
 
 function IPO() {
   return (
-    <section id="ipo" className="py-16 md:py-24">
+    <section id="ipo" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
-        <SectionHeader
-          eyebrow="IPO Center"
-          title="Your complete IPO intelligence desk."
-          desc="Track open, upcoming and listed IPOs. Read expert reviews and get real-time GMP & subscription updates."
-        />
-
-        {/* Category Cards */}
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {IPO_CATEGORIES.map(({ title, count, icon: Icon, color }) => (
-            <div
-              key={title}
-              className="group relative overflow-hidden rounded-3xl glass p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-glow)]"
-            >
-              <div
-                className="absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-0 blur-2xl transition-opacity group-hover:opacity-30"
-                style={{ background: color }}
-              />
-              <div className="relative">
-                <div
-                  className="grid h-12 w-12 place-items-center rounded-2xl text-white shadow-[var(--shadow-soft)]"
-                  style={{ background: `linear-gradient(135deg, ${color}, oklch(0.78 0.13 210))` }}
-                >
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h3 className="mt-5 font-display text-lg font-bold text-foreground">
-                  {title}
-                </h3>
-                <p className="mt-1 text-sm font-medium text-muted-foreground">
-                  {count}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Featured IPO Card */}
-        <div className="mt-8 rounded-[2rem] glass-strong p-6 md:p-10">
-          <div className="flex items-center gap-2">
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-foreground/70">
-              Featured IPO
-            </span>
-          </div>
-
-          <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-              <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-brand text-xl font-bold text-white shadow-[var(--shadow-soft)]">
-                {FEATURED_IPO.logo}
-              </div>
-              <div>
-                <h3 className="font-display text-2xl font-extrabold tracking-tight text-foreground">
-                  {FEATURED_IPO.name}
-                </h3>
-                <div className="mt-2 flex flex-wrap items-center gap-3">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-foreground/80">
-                    <Building2 className="h-3.5 w-3.5 text-brand-purple" />
-                    Price Band: {FEATURED_IPO.priceBand}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-foreground/80">
-                    <CalendarDays className="h-3.5 w-3.5 text-brand-blue" />
-                    {FEATURED_IPO.openDate} – {FEATURED_IPO.closeDate}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-2 lg:gap-4 xl:grid-cols-4">
-              <div className="rounded-2xl bg-white/70 p-4 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <TrendingUp className="h-3 w-3" /> GMP
-                </div>
-                <p className="mt-1 text-lg font-extrabold text-emerald-600">
-                  {FEATURED_IPO.gmp}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-white/70 p-4 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Users className="h-3 w-3" /> Subscription
-                </div>
-                <p className="mt-1 text-lg font-extrabold text-gradient">
-                  {FEATURED_IPO.subscription}
-                </p>
-              </div>
-              <div className="rounded-2xl bg-white/70 p-4 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Award className="h-3 w-3" /> Rating
-                </div>
-                <p className="mt-1 text-lg font-extrabold text-amber-500">
-                  {FEATURED_IPO.rating}
-                  <span className="text-xs font-medium text-muted-foreground"> /5</span>
-                </p>
-              </div>
-              <div className="rounded-2xl bg-white/70 p-4 text-center">
-                <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <ThumbsUp className="h-3 w-3" /> Recommendation
-                </div>
-                <p className="mt-1 text-sm font-extrabold text-emerald-600">
-                  {FEATURED_IPO.recommendation}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Eye className="h-3.5 w-3.5" />
-              <span>Updated 2 minutes ago • SEBI DRHP reviewed</span>
-            </div>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button
-                variant="outline"
-                className="rounded-full border-2 bg-white/60 px-6 font-semibold hover:bg-white"
-              >
-                Read Review <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-              <Button className="rounded-full bg-gradient-brand px-6 text-white shadow-[var(--shadow-soft)] hover:opacity-95">
-                Apply Now <Rocket className="ml-1 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* View All */}
-        <div className="mt-8 text-center">
-          <Button
-            variant="outline"
-            size="lg"
-            className="rounded-full border-2 bg-white/60 px-8 font-semibold hover:bg-white"
-          >
-            View All IPOs <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
+        <div>
+          <UserIpoSection />
         </div>
       </div>
     </section>
@@ -791,14 +751,13 @@ const PERF = [
 
 function Performance() {
   return (
-    <section id="performance" className="py-16 md:py-24">
+    <section id="performance" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Performance Snapshot"
           title="Numbers we're proud to publish."
-          desc="Live-tracked, timestamped, and fully transparent. No screenshots — only receipts."
         />
-        <div className="mt-12 rounded-3xl glass-strong p-4 md:p-8">
+        <div className="mt-6 rounded-3xl glass-strong p-4 md:p-6">
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {PERF.map((p) => (
               <div
@@ -828,63 +787,12 @@ function Performance() {
   );
 }
 
-const STEPS = [
-  {
-    icon: Users,
-    title: "Create your account",
-    desc: "Sign up in under 60 seconds. Verify your KYC once.",
-  },
-  {
-    icon: Wallet,
-    title: "Review the call",
-    desc: "See entry, stop loss, target and risk grade before placing a trade.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Receive research",
-    desc: "Get SEBI-compliant calls with entry, target and stoploss.",
-  },
-  {
-    icon: Zap,
-    title: "Track outcomes & learn",
-    desc: "Monitor past performance to refine your strategy over time.",
-  },
-];
-
-function How() {
-  return (
-    <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4">
-        <SectionHeader
-          eyebrow="How It Works"
-          title="From sign-up to your first trade in minutes."
-        />
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {STEPS.map((s, i) => (
-            <div key={s.title} className="relative rounded-3xl glass p-6">
-              <div className="absolute -top-4 left-6 rounded-full bg-gradient-brand px-3 py-1 text-xs font-bold text-white shadow-[var(--shadow-soft)]">
-                Step {i + 1}
-              </div>
-              <div className="mt-3 grid h-12 w-12 place-items-center rounded-2xl bg-white/80">
-                <s.icon className="h-6 w-6 text-brand-purple" />
-              </div>
-              <h3 className="mt-4 font-display text-lg font-bold">{s.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 const PRICING_FEATURES = [
   "Premium Equity Research",
   "Options Research",
   "IPO Research",
   "Live Market Alerts",
-  "Trade Execution",
-  "Email Support",
+  "WhatsApp Support",
 ];
 
 function PricingCard({
@@ -941,8 +849,8 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      <Button className="mt-7 w-full rounded-full bg-gradient-brand text-white font-semibold shadow-[var(--shadow-soft)] hover:opacity-95 transition-opacity">
-        Join Now
+      <Button asChild className="mt-7 w-full rounded-full bg-gradient-brand text-white font-semibold shadow-[var(--shadow-soft)] hover:opacity-95 transition-opacity">
+        <a href="/auth/login">Join Now</a>
       </Button>
     </div>
   );
@@ -950,14 +858,14 @@ function PricingCard({
 
 function Pricing() {
   return (
-    <section id="pricing" className="py-16 md:py-24">
+    <section id="pricing" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Pricing"
           title="Invest in your wealth."
           desc="Premium research at a fraction of the cost. No hidden fees. GST included."
         />
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <PricingCard
             plan="Monthly Plan"
             original="₹10,000"
@@ -1009,13 +917,13 @@ const TESTIMONIALS = [
 
 function Testimonials() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <SectionHeader
           eyebrow="Testimonials"
-          title="Loved by 10,000+ investors."
+          title="Loved by 1,000+ investors."
         />
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           {TESTIMONIALS.map((t) => (
             <div key={t.name} className="rounded-3xl glass p-6">
               <div className="flex gap-0.5 text-amber-400">
@@ -1047,9 +955,9 @@ function Testimonials() {
 
 function Academy() {
   return (
-    <section id="academy" className="py-16 md:py-24">
+    <section id="academy" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="relative overflow-hidden rounded-[2rem] glass-strong p-8 md:p-14">
+        <div className="relative overflow-hidden rounded-[2rem] glass-strong p-7 md:p-10">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-gradient-brand opacity-30 blur-3xl" />
           <div className="absolute -left-16 -bottom-16 h-64 w-64 rounded-full bg-brand-cyan opacity-40 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-center">
@@ -1066,14 +974,17 @@ function Academy() {
                 investing — taught by NISM certified analysts.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Button className="rounded-full bg-gradient-brand text-white hover:opacity-95">
-                  Browse Courses <BookOpen className="ml-1 h-4 w-4" />
+                <Button asChild className="rounded-full bg-gradient-brand text-white hover:opacity-95">
+                  <a href="#academy">
+                    Browse Courses <BookOpen className="ml-1 h-4 w-4" />
+                  </a>
                 </Button>
                 <Button
+                  asChild
                   variant="outline"
                   className="rounded-full border-2 bg-white/60"
                 >
-                  Watch Free Preview
+                  <a href="#Community">Join Nivesh Yukti</a>
                 </Button>
               </div>
             </div>
@@ -1082,7 +993,7 @@ function Academy() {
                 { t: "Equity 101", n: "12 lessons" },
                 { t: "Options Masterclass", n: "18 lessons" },
                 { t: "IPO Investing", n: "8 lessons" },
-                { t: "Portfolio Design", n: "10 lessons" },
+                { t: "Risk Management", n: "10 lessons" },
               ].map((c) => (
                 <div
                   key={c.t}
@@ -1122,19 +1033,19 @@ const FAQS = [
   },
   {
     q: "Do you offer 1-on-1 support?",
-    a: "Yes — Elite subscribers get direct analyst calls, portfolio reviews and custom strategy consultations.",
+    a: "Yes — Elite subscribers get direct analyst calls and research-focused strategy consultations.",
   },
 ];
 
 function FAQ() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="py-8 md:py-12">
       <div className="mx-auto max-w-3xl px-4">
         <SectionHeader
           eyebrow="FAQ"
           title="Questions? We've got answers."
         />
-        <div className="mt-10 rounded-3xl glass p-2 md:p-4">
+        <div className="mt-6 rounded-3xl glass p-2 md:p-4">
           <Accordion type="single" collapsible className="w-full">
             {FAQS.map((f, i) => (
               <AccordionItem
@@ -1157,38 +1068,94 @@ function FAQ() {
   );
 }
 
+const SOCIAL_COMMUNITY = [
+  {
+    name: "Instagram",
+    value: "2.5L+",
+    label: "Followers",
+    cta: "Follow us",
+    href: "https://instagram.com",
+    icon: Camera,
+    iconBg: "bg-[linear-gradient(135deg,#833AB4_0%,#FD1D1D_55%,#FCAF45_100%)]",
+    valueClass: "text-[#e1306c]",
+  },
+  {
+    name: "Telegram",
+    value: "3.0L+",
+    label: "Members",
+    cta: "Join Channel",
+    href: "https://t.me",
+    icon: Send,
+    iconBg: "bg-[#2AABEE]",
+    valueClass: "text-[#2AABEE]",
+  },
+  {
+    name: "YouTube",
+    value: "1.4L+",
+    label: "Subscribers",
+    cta: "Subscribe",
+    href: "https://youtube.com",
+    icon: Play,
+    iconBg: "bg-[#FF0000]",
+    valueClass: "text-[#FF0000]",
+  },
+  {
+    name: "WhatsApp",
+    value: "4.2L+",
+    label: "Community",
+    cta: "Join Group",
+    href: "https://whatsapp.com",
+    icon: MessageCircle,
+    iconBg: "bg-[#25D366]",
+    valueClass: "text-[#25D366]",
+  },
+] as const;
+
 function CTA() {
   return (
-    <section id="contact" className="py-16 md:py-24">
+    <section id="Community" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
-        <div className="relative overflow-hidden rounded-[2rem] bg-gradient-brand p-10 text-white md:p-16">
-          <div className="absolute inset-0 opacity-30 [background:radial-gradient(600px_300px_at_20%_0%,white,transparent),radial-gradient(500px_300px_at_80%_100%,white,transparent)]" />
-          <div className="relative grid gap-6 lg:grid-cols-[1.4fr_1fr] lg:items-center">
-            <div>
-              <h2 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-                Start letting your money make more money.
-              </h2>
-              <p className="mt-4 max-w-xl text-white/85">
-                Join 10,000+ investors who trust Nivesh Yukti for premium
-                research, IPO analysis and recommendation-only market reports.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col lg:items-end">
-              <Button
-                size="lg"
-                className="rounded-full bg-white px-6 font-semibold text-brand-purple hover:bg-white/90"
+        <div className="mx-auto max-w-4xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-blue md:text-sm">
+            Join Nivesh Yukti Community
+          </p>
+          <h2 className="mt-3 font-display text-4xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl md:text-6xl">
+            Join thousands of Indians who invest with more clarity
+          </h2>
+        </div>
+
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {SOCIAL_COMMUNITY.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.name}
+                className="rounded-3xl border border-border/70 bg-card/75 p-7 text-center shadow-[var(--shadow-card)]"
               >
-                Become Premium <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="rounded-full border-2 border-white/70 bg-transparent px-6 font-semibold text-white hover:bg-white/10 hover:text-white"
-              >
-                Talk to an analyst
-              </Button>
-            </div>
-          </div>
+                <div className={`mx-auto grid h-20 w-20 place-items-center rounded-2xl text-white ${item.iconBg}`}>
+                  <Icon className="h-11 w-11" strokeWidth={2.1} />
+                </div>
+
+                <h3 className="mt-5 text-[38px] font-bold uppercase tracking-[0.08em] text-foreground md:text-[40px]">
+                  {item.name}
+                </h3>
+                <p className={`mt-4 text-6xl font-extrabold tracking-tight ${item.valueClass}`}>
+                  {item.value}
+                </p>
+                <p className="mt-2 text-2xl text-foreground/85">{item.label}</p>
+
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 text-2xl font-semibold text-brand-blue transition-colors hover:text-brand-purple"
+                >
+                  {item.cta}
+                  <ArrowRight className="h-5 w-5" />
+                </a>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1236,7 +1203,7 @@ function Footer() {
                     {c.items.map((i) => (
                       <li key={i}>
                         <a
-                          href="#"
+                          href={footerLink(i)}
                           className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {i}
@@ -1248,7 +1215,7 @@ function Footer() {
               ))}
             </div>
           </div>
-          <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row sm:items-center">
+          <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-border/60 pt-5 sm:flex-row sm:items-center">
             <p className="text-xs text-muted-foreground">
               © {new Date().getFullYear()} Nivesh Yukti. All rights reserved.
             </p>
@@ -1266,14 +1233,16 @@ function Landing() {
   return (
     <div className="min-h-screen">
       <Nav />
+      <ResearchSignupPrompt />
       <main>
         <Hero />
         <Stats />
         <Why />
         <Research />
+        <InvestorToolsHub />
+        <MarketNewsSection />
         <IPO />
         <Performance />
-        <How />
         <Pricing />
         <Testimonials />
         <Academy />
@@ -1283,4 +1252,29 @@ function Landing() {
       <Footer />
     </div>
   );
+}
+
+function footerLink(item: string): string {
+  const links: Record<string, string> = {
+    Research: "#research",
+    IPO: "#ipo",
+    Performance: "#performance",
+    Pricing: "#pricing",
+    Academy: "#academy",
+    About: "#about",
+    Contact: "#contact",
+    Terms: "#contact",
+    Privacy: "#contact",
+    Disclosure: "#contact",
+    "SEBI Reg": "#contact",
+    "Refund Policy": "#contact",
+    Careers: "mailto:careers@niveshyukti.com",
+    Press: "mailto:press@niveshyukti.com",
+    Blog: "#home",
+    Product: "#home",
+    Company: "#about",
+    Legal: "#contact",
+  };
+
+  return links[item] ?? "#contact";
 }

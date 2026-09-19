@@ -9,15 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as PremiumRouteImport } from './routes/premium'
+import { Route as IpoRouteImport } from './routes/ipo'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const PremiumRoute = PremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IpoRoute = IpoRouteImport.update({
+  id: '/ipo',
+  path: '/ipo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -44,14 +50,16 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/dashboard': typeof DashboardRoute
+  '/ipo': typeof IpoRoute
+  '/premium': typeof PremiumRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/dashboard': typeof DashboardRoute
+  '/ipo': typeof IpoRoute
+  '/premium': typeof PremiumRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
@@ -59,20 +67,28 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
-  '/dashboard': typeof DashboardRoute
+  '/ipo': typeof IpoRoute
+  '/premium': typeof PremiumRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/login': typeof AuthLoginRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/dashboard' | '/auth/callback' | '/auth/login'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/ipo'
+    | '/premium'
+    | '/auth/callback'
+    | '/auth/login'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/dashboard' | '/auth/callback' | '/auth/login'
+  to: '/' | '/admin' | '/ipo' | '/premium' | '/auth/callback' | '/auth/login'
   id:
     | '__root__'
     | '/'
     | '/admin'
-    | '/dashboard'
+    | '/ipo'
+    | '/premium'
     | '/auth/callback'
     | '/auth/login'
   fileRoutesById: FileRoutesById
@@ -80,18 +96,26 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
-  DashboardRoute: typeof DashboardRoute
+  IpoRoute: typeof IpoRoute
+  PremiumRoute: typeof PremiumRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthLoginRoute: typeof AuthLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/premium': {
+      id: '/premium'
+      path: '/premium'
+      fullPath: '/premium'
+      preLoaderRoute: typeof PremiumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ipo': {
+      id: '/ipo'
+      path: '/ipo'
+      fullPath: '/ipo'
+      preLoaderRoute: typeof IpoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -128,7 +152,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
-  DashboardRoute: DashboardRoute,
+  IpoRoute: IpoRoute,
+  PremiumRoute: PremiumRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthLoginRoute: AuthLoginRoute,
 }

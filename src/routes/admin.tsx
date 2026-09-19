@@ -1,6 +1,28 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { supabase } from "@/lib/supabase/client";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
+import { supabase } from "@/lib/supabase/client";
+
+import AdminSidebar from "@/components/admin/layout/AdminSidebar";
+import AdminTopbar from "@/components/admin/layout/AdminTopbar";
+import AdminStatsCards from "@/components/admin/layout/AdminStatsCards";
+import ResearchManager from "@/components/admin/research/ResearchManager";
+import AdminIpoManager from "@/components/admin/ipo/AdminIpoManager";
+
+type AdminSection =
+  | "dashboard"
+  | "research"
+  | "ipo"
+  | "news"
+  | "stock-reco"
+  | "fo-reco"
+  | "commodity-reco"
+  | "learning"
+  | "users"
+  | "premium"
+  | "notifications"
+  | "settings"
+  | "logout";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async () => {
@@ -22,7 +44,7 @@ export const Route = createFileRoute("/admin")({
 
     if (profile?.role !== "super_admin") {
       throw redirect({
-        to: "/dashboard",
+        to: "/",
       });
     }
   },
@@ -31,92 +53,89 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [audience, setAudience] = useState<"public" | "paid">("public");
-  const [status, setStatus] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<AdminSection>("dashboard");
+  const navigate = useNavigate();
 
-  async function publishContent() {
-    setStatus("Publishing...");
-
-    const { error } = await supabase.from("published_content").insert([
-      {
-        title,
-        body,
-        audience,
-        published_at: new Date().toISOString(),
-      },
-    ]);
-
-    if (error) {
-      setStatus(`Failed to publish: ${error.message}`);
+  const handleSelect = async (section: AdminSection) => {
+    if (section === "logout") {
+      await supabase.auth.signOut();
+      await navigate({ to: "/auth/login" });
       return;
     }
 
-    setTitle("");
-    setBody("");
-    setStatus("Content published successfully.");
-  }
+    setActiveSection(section);
+  };
 
   return (
-    <div className="p-10 space-y-8">
-      <div>
-        <h1 className="text-4xl font-bold">Super Admin Panel</h1>
-        <p className="mt-4 max-w-2xl text-base text-muted-foreground">
-          Publish research reports on stocks, F&O and commodity recommendations for users.
-        </p>
-      </div>
+    <div className="flex min-h-screen bg-slate-100">
+      <AdminSidebar activeSection={activeSection} onSelect={handleSelect} />
 
-      <div className="rounded-3xl border border-border bg-card p-8 shadow-sm">
-        <div className="grid gap-6">
-          <label className="space-y-2 text-sm font-medium text-foreground">
-            Content title
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Research update title"
-              className="w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
+      <main className="flex-1 p-6 space-y-6">
+        {activeSection === "dashboard" ? (
+          <section className="space-y-6">
+            <AdminTopbar onOpenNotifications={() => setActiveSection("notifications")} />
+            <AdminStatsCards />
+          </section>
+        ) : null}
 
-          <label className="space-y-2 text-sm font-medium text-foreground">
-            Content body
-            <textarea
-              value={body}
-              onChange={(event) => setBody(event.target.value)}
-              placeholder="Write the content you want to publish to users or paid clients."
-              className="min-h-[220px] w-full rounded-xl border border-input bg-background px-4 py-3 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </label>
+        {activeSection === "research" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Research Management</h1>
+                <p className="mt-1 text-sm text-slate-500">
+                  Manage research reports with unique NY codes, publishing, search, filters, and CSV import.
+                </p>
+              </div>
+            </div>
+            <ResearchManager />
+          </section>
+        ) : null}
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setAudience("public")}
-              className={`rounded-xl border px-4 py-3 text-sm font-semibold ${audience === "public" ? "border-primary bg-primary/10 text-primary" : "border-input bg-background text-foreground"}`}
-            >
-              Publish to normal users
-            </button>
-            <button
-              type="button"
-              onClick={() => setAudience("paid")}
-              className={`rounded-xl border px-4 py-3 text-sm font-semibold ${audience === "paid" ? "border-primary bg-primary/10 text-primary" : "border-input bg-background text-foreground"}`}
-            >
-              Publish to paid clients
-            </button>
-          </div>
+        {activeSection === "ipo" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <AdminIpoManager />
+          </section>
+        ) : null}
 
-          <button
-            type="button"
-            onClick={publishContent}
-            className="rounded-xl bg-slate-900 px-5 py-3 text-white transition hover:bg-slate-800"
-          >
-            Publish research report
-          </button>
-
-          {status ? <p className="text-sm text-muted-foreground">{status}</p> : null}
-        </div>
-      </div>
+        {activeSection !== "dashboard" && activeSection !== "research" && activeSection !== "ipo" ? (
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-2xl font-bold text-slate-900">{getSectionTitle(activeSection)}</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              This section opens from the sidebar and all other sections remain hidden.
+            </p>
+          </section>
+        ) : null}
+      </main>
     </div>
   );
+}
+
+function getSectionTitle(section: Exclude<AdminSection, "logout">): string {
+  switch (section) {
+    case "dashboard":
+      return "Admin Dashboard";
+    case "research":
+      return "Research Reports";
+    case "ipo":
+      return "IPO Calendar";
+    case "news":
+      return "Market News";
+    case "stock-reco":
+      return "Stock Recommendations";
+    case "fo-reco":
+      return "F&O Recommendations";
+    case "commodity-reco":
+      return "Commodity Recommendations";
+    case "learning":
+      return "Learning Center";
+    case "users":
+      return "Users";
+    case "premium":
+      return "Premium Members";
+    case "notifications":
+      return "Notifications";
+    case "settings":
+      return "Settings";
+  }
 }
