@@ -12,21 +12,49 @@ export default function ResearchSignupPrompt() {
   const [phone, setPhone] = useState("");
 
   useEffect(() => {
-    if (window.sessionStorage.getItem("nivesh-yukti-signup-prompt-dismissed")) return;
+    try {
+      if (window.sessionStorage.getItem("nivesh-yukti-signup-prompt-dismissed")) return;
+    } catch {
+      // Storage can be unavailable in privacy-restricted browser contexts.
+    }
     const timer = window.setTimeout(() => setOpen(true), 900);
     return () => window.clearTimeout(timer);
   }, []);
 
   const dismiss = () => {
-    window.sessionStorage.setItem("nivesh-yukti-signup-prompt-dismissed", "true");
     setOpen(false);
+    try {
+      window.sessionStorage.setItem("nivesh-yukti-signup-prompt-dismissed", "true");
+    } catch {
+      // The prompt is still dismissed for this page view if storage is unavailable.
+    }
   };
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") dismiss();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] grid place-items-center bg-[#020c0a]/75 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="research-signup-title">
-      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-[#071b18] p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-7">
+    <div
+      className="fixed inset-0 z-[70] grid place-items-center bg-[#020c0a]/75 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="research-signup-title"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) dismiss();
+      }}
+    >
+      <div
+        className="relative w-full max-w-md overflow-hidden rounded-[2rem] border border-white/10 bg-[#071b18] p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:p-7"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <div className="absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_50%_0%,rgba(70,225,185,0.27),transparent_68%)]" />
         <button type="button" onClick={dismiss} aria-label="Close sign-up prompt" className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white/75 transition hover:bg-white/20 hover:text-white">
           <X className="h-4 w-4" />
