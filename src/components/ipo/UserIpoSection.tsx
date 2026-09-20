@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
+import { CalendarDays, CircleCheck, Info, Landmark, RefreshCw } from "lucide-react";
 import { getPublishedIpos, type IpoRecord } from "@/lib/supabase/ipo";
 import { supabase } from "@/lib/supabase/client";
 
 type BoardFilter = "all" | "mainboard" | "sme";
 type DisplayStatus = "open" | "upcoming" | "past";
+type ViewFilter = "all" | DisplayStatus;
 
 type DisplayRow = {
   item: IpoRecord;
@@ -17,6 +19,7 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 export default function UserIpoSection() {
   const [items, setItems] = useState<IpoRecord[]>([]);
   const [boardFilter, setBoardFilter] = useState<BoardFilter>("all");
+  const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
   const [feedback, setFeedback] = useState("Loading IPO dashboard...");
 
   useEffect(() => {
@@ -88,7 +91,8 @@ export default function UserIpoSection() {
         return { item, board, displayStatus: status };
       })
       .filter((value): value is DisplayRow => value !== null)
-      .filter((row) => boardFilter === "all" || row.board === boardFilter);
+      .filter((row) => boardFilter === "all" || row.board === boardFilter)
+      .filter((row) => viewFilter === "all" || row.displayStatus === viewFilter);
 
     const openMainboard = mapped
       .filter((row) => row.displayStatus === "open" && row.board === "mainboard")
@@ -117,7 +121,7 @@ export default function UserIpoSection() {
 
     // Required order: open (mainboard first), then upcoming next 2 weeks, then past IPOs.
     return [...openMainboard, ...openSme, ...upcomingTwoWeeks, ...past];
-  }, [boardFilter, items]);
+  }, [boardFilter, items, viewFilter]);
 
   const stats = useMemo(() => {
     const now = startOfToday();
@@ -149,11 +153,18 @@ export default function UserIpoSection() {
   return (
     <section className="glass-strong rounded-3xl border border-border p-5 shadow-[var(--shadow-soft)] lg:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            IPO Dashboard
+        <div className="max-w-2xl">
+          <p className="flex items-center gap-2 text-sm font-bold text-brand-blue">
+            <Landmark className="h-4 w-4" /> Indian primary market
+          </p>
+          <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            IPO Tracker
           </h2>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            See what is open now, what is coming next, and recently listed issues. This is
+            information for research—not an application recommendation.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2" aria-label="Filter by board">
             {(["all", "mainboard", "sme"] as BoardFilter[]).map((tab) => (
               <button
                 key={tab}
@@ -165,47 +176,74 @@ export default function UserIpoSection() {
                     : "border border-border bg-card/80 text-foreground/75 hover:bg-card hover:text-foreground"
                 }`}
               >
-                {tab}
+                {tab === "all" ? "All boards" : `${tab === "sme" ? "SME" : "Mainboard"} IPOs`}
               </button>
             ))}
           </div>
         </div>
 
         <div className="rounded-2xl border border-border bg-card/85 px-4 py-3 text-sm text-foreground">
-          <p>
-            <span className="font-semibold text-foreground">Source:</span> {sourceLabel}
+          <p className="flex items-center gap-2 font-semibold">
+            <RefreshCw className="h-4 w-4 text-brand-blue" /> Updated automatically
           </p>
-          <p className="mt-1">
-            <span className="font-semibold text-foreground">Updates:</span> Automatically refreshed
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Free sources: {sourceLabel}</p>
         </div>
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-4">
-        <StatCard title="Open IPOs" value={stats.open} />
-        <StatCard title="Upcoming (14 days)" value={stats.upcomingTwoWeeks} />
-        <StatCard title="Past IPOs" value={stats.past} />
-        <StatCard title="Listed IPOs" value={stats.listed} />
+        <StatCard
+          title="Open now"
+          value={stats.open}
+          onClick={() => setViewFilter("open")}
+          active={viewFilter === "open"}
+        />
+        <StatCard
+          title="Coming in 14 days"
+          value={stats.upcomingTwoWeeks}
+          onClick={() => setViewFilter("upcoming")}
+          active={viewFilter === "upcoming"}
+        />
+        <StatCard
+          title="Closed / past"
+          value={stats.past}
+          onClick={() => setViewFilter("past")}
+          active={viewFilter === "past"}
+        />
+        <StatCard
+          title="Listed"
+          value={stats.listed}
+          onClick={() => setViewFilter("all")}
+          active={viewFilter === "all"}
+        />
       </div>
 
       <div className="mt-6 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
         <div className="overflow-hidden rounded-2xl border border-border bg-card/90">
-          <div className="flex items-center justify-between border-b border-border bg-muted/35 px-4 py-3">
-            <h3 className="text-2xl font-semibold text-foreground sm:text-3xl">
-              Open, Upcoming, and Past IPOs
-            </h3>
-            <span className="text-sm text-muted-foreground">{feedback}</span>
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/35 px-4 py-3">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground">IPO calendar</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">{feedback}</p>
+            </div>
+            {viewFilter !== "all" ? (
+              <button
+                type="button"
+                onClick={() => setViewFilter("all")}
+                className="text-sm font-semibold text-brand-blue hover:underline"
+              >
+                Show all
+              </button>
+            ) : null}
           </div>
 
           <div className="overflow-x-auto">
             <table className="min-w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-card text-muted-foreground">
-                  <th className="px-4 py-3 font-semibold">Company Name</th>
-                  <th className="px-4 py-3 font-semibold">Type</th>
-                  <th className="px-4 py-3 font-semibold">Open Date</th>
-                  <th className="px-4 py-3 font-semibold">Close Date</th>
-                  <th className="px-4 py-3 font-semibold">Issue Price</th>
+                  <th className="px-4 py-3 font-semibold">Company</th>
+                  <th className="px-4 py-3 font-semibold">Opens</th>
+                  <th className="px-4 py-3 font-semibold">Closes</th>
+                  <th className="px-4 py-3 font-semibold">Price band</th>
+                  <th className="px-4 py-3 font-semibold">Lot size</th>
                   <th className="px-4 py-3 font-semibold">Subscription</th>
                 </tr>
               </thead>
@@ -213,7 +251,7 @@ export default function UserIpoSection() {
                 {rows.length === 0 ? (
                   <tr>
                     <td className="px-4 py-6 text-muted-foreground" colSpan={6}>
-                      No IPO rows match this filter.
+                      No IPOs match this view right now. Try “Show all” or select another board.
                     </td>
                   </tr>
                 ) : (
@@ -224,14 +262,21 @@ export default function UserIpoSection() {
                     >
                       <td className="px-4 py-3">
                         <div className="font-semibold text-foreground">{row.item.company_name}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">
-                          {statusLabel(row.displayStatus)}
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-semibold ${statusTone(row.displayStatus)}`}
+                          >
+                            {statusLabel(row.displayStatus)}
+                          </span>
+                          <span className="rounded-full bg-muted px-2 py-0.5 capitalize text-muted-foreground">
+                            {row.board}
+                          </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 capitalize">{row.board}</td>
                       <td className="px-4 py-3">{formatDate(row.item.issue_open_date)}</td>
                       <td className="px-4 py-3">{formatDate(row.item.issue_close_date)}</td>
                       <td className="px-4 py-3">{row.item.price_band ?? "TBA"}</td>
+                      <td className="px-4 py-3">{row.item.lot_size ?? "TBA"}</td>
                       <td className="px-4 py-3">{row.item.subscription ?? "--"}</td>
                     </tr>
                   ))
@@ -241,29 +286,57 @@ export default function UserIpoSection() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card/90">
-          <div className="border-b border-border bg-muted/35 px-5 py-4">
-            <h3 className="text-3xl font-semibold text-foreground">Quick Navigation</h3>
+        <aside className="rounded-2xl border border-border bg-card/90 p-5">
+          <h3 className="text-xl font-semibold text-foreground">How to use this tracker</h3>
+          <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground">
+            <p className="flex gap-2">
+              <CircleCheck className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
+              <span>
+                <strong className="text-foreground">Open now:</strong> applications may be open.
+                Always check the official issue document and broker platform before applying.
+              </span>
+            </p>
+            <p className="flex gap-2">
+              <CalendarDays className="mt-1 h-4 w-4 shrink-0 text-brand-blue" />
+              <span>
+                <strong className="text-foreground">Coming soon:</strong> use the open date and
+                price band to plan your research.
+              </span>
+            </p>
+            <p className="flex gap-2">
+              <Info className="mt-1 h-4 w-4 shrink-0 text-amber-600" />
+              <span>
+                GMP and subscription data can be delayed or unavailable. Verify figures with
+                official exchange notices.
+              </span>
+            </p>
           </div>
-          <ul className="divide-y divide-border text-xl">
-            <li className="px-5 py-4 text-foreground">All IPOs</li>
-            <li className="px-5 py-4 text-foreground">Open IPOs</li>
-            <li className="bg-muted/30 px-5 py-4 font-medium text-brand-purple">Upcoming IPOs</li>
-            <li className="px-5 py-4 text-foreground">Past IPOs</li>
-            <li className="px-5 py-4 text-foreground">IPO GMP</li>
-          </ul>
-        </div>
+        </aside>
       </div>
     </section>
   );
 }
 
-function StatCard({ title, value }: { title: string; value: number }) {
+function StatCard({
+  title,
+  value,
+  onClick,
+  active,
+}: {
+  title: string;
+  value: number;
+  onClick: () => void;
+  active: boolean;
+}) {
   return (
-    <div className="rounded-2xl border border-border bg-card/90 px-5 py-4">
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl border px-5 py-4 text-left transition ${active ? "border-brand-blue bg-brand-blue/5 ring-1 ring-brand-blue/30" : "border-border bg-card/90 hover:border-brand-blue/50"}`}
+    >
       <p className="text-base font-semibold text-muted-foreground">{title}</p>
       <p className="mt-3 text-5xl font-bold text-foreground">{value}</p>
-    </div>
+    </button>
   );
 }
 
@@ -350,6 +423,12 @@ function statusLabel(value: DisplayStatus): string {
   if (value === "open") return "Open IPO";
   if (value === "upcoming") return "Upcoming (Next 14 Days)";
   return "Past IPO";
+}
+
+function statusTone(value: DisplayStatus): string {
+  if (value === "open") return "bg-emerald-100 text-emerald-700";
+  if (value === "upcoming") return "bg-blue-100 text-blue-700";
+  return "bg-muted text-muted-foreground";
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
