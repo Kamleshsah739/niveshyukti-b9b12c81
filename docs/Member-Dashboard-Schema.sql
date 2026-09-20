@@ -28,8 +28,24 @@ create table if not exists public.user_saved_market_deals (
   primary key (user_id, deal_id)
 );
 
+create table if not exists public.user_stock_watchlist (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  symbol text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, symbol)
+);
+
 alter table public.market_deals enable row level security;
 alter table public.user_saved_market_deals enable row level security;
+alter table public.user_stock_watchlist enable row level security;
+
+drop policy if exists "Authenticated users can read market deals" on public.market_deals;
+drop policy if exists "Users can read their saved market deals" on public.user_saved_market_deals;
+drop policy if exists "Users can save market deals" on public.user_saved_market_deals;
+drop policy if exists "Users can remove their saved market deals" on public.user_saved_market_deals;
+drop policy if exists "Users can read their stock watchlist" on public.user_stock_watchlist;
+drop policy if exists "Users can add stocks to their watchlist" on public.user_stock_watchlist;
+drop policy if exists "Users can remove stocks from their watchlist" on public.user_stock_watchlist;
 
 create policy "Authenticated users can read market deals"
   on public.market_deals for select to authenticated using (true);
@@ -42,6 +58,15 @@ create policy "Users can save market deals"
 
 create policy "Users can remove their saved market deals"
   on public.user_saved_market_deals for delete to authenticated using (auth.uid() = user_id);
+
+create policy "Users can read their stock watchlist"
+  on public.user_stock_watchlist for select to authenticated using (auth.uid() = user_id);
+
+create policy "Users can add stocks to their watchlist"
+  on public.user_stock_watchlist for insert to authenticated with check (auth.uid() = user_id);
+
+create policy "Users can remove stocks from their watchlist"
+  on public.user_stock_watchlist for delete to authenticated using (auth.uid() = user_id);
 
 -- Use the service role only in a trusted server/Worker to import official records.
 -- Keep source_url and source_published_at for each import for compliance and auditability.
