@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 
+const PRODUCTION_APP_URL = "https://kamleshsah739-niveshyukti-b9b12c81.kamleshsah739.workers.dev";
+
 export const Route = createFileRoute("/auth/login")({ component: LoginPage });
 
 function LoginPage() {
@@ -53,7 +55,11 @@ function LoginPage() {
     setIsLoading(true);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      // Authentication must return to the deployed Worker. A local development
+      // origin is only used when it is actually running on this device.
+      options: {
+        redirectTo: `${window.location.hostname === "localhost" ? window.location.origin : PRODUCTION_APP_URL}/auth/callback`,
+      },
     });
     if (error) {
       console.error("OAuth sign-in error:", error);
