@@ -1,10 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  getLatestIpoSyncRun,
-  getPublishedIpos,
-  type IpoRecord,
-  type IpoSyncRun,
-} from "@/lib/supabase/ipo";
+import { getPublishedIpos, type IpoRecord } from "@/lib/supabase/ipo";
 import { supabase } from "@/lib/supabase/client";
 
 type BoardFilter = "all" | "mainboard" | "sme";
@@ -21,7 +16,6 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 
 export default function UserIpoSection() {
   const [items, setItems] = useState<IpoRecord[]>([]);
-  const [latestSync, setLatestSync] = useState<IpoSyncRun | null>(null);
   const [boardFilter, setBoardFilter] = useState<BoardFilter>("all");
   const [feedback, setFeedback] = useState("Loading IPO dashboard...");
 
@@ -31,10 +25,12 @@ export default function UserIpoSection() {
 
     const load = async () => {
       try {
-        const [ipoRows, syncRow] = await Promise.all([getPublishedIpos(), getLatestIpoSyncRun()]);
+        // Sync history is intentionally private. The public dashboard must only
+        // query the published IPO table, otherwise the private log policy hides
+        // all IPO records when this Promise fails.
+        const ipoRows = await getPublishedIpos();
         if (!mounted) return;
         setItems(ipoRows);
-        setLatestSync(syncRow);
         setFeedback(`Showing ${ipoRows.length} published IPO records.`);
       } catch (error) {
         if (!mounted) return;
@@ -56,8 +52,16 @@ export default function UserIpoSection() {
     // without requiring visitors to reload the page.
     const channel = supabase
       .channel("published-ipo-dashboard")
-      .on("postgres_changes", { event: "*", schema: "public", table: "ipo_entries" }, scheduleRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "ipo_sync_runs" }, scheduleRefresh)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ipo_entries" },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "ipo_sync_runs" },
+        scheduleRefresh,
+      )
       .subscribe();
 
     const refreshInterval = setInterval(() => {
@@ -122,14 +126,20 @@ export default function UserIpoSection() {
     const open = items.filter((item) => isOpenIpo(item, now)).length;
     const upcomingTwoWeeks = items.filter((item) => isUpcomingWithin(item, now, next14)).length;
     const past = items.filter((item) => isPastIpo(item, now)).length;
-    const listed = items.filter((item) => item.status === "listed" || isListedByDate(item, now)).length;
+    const listed = items.filter(
+      (item) => item.status === "listed" || isListedByDate(item, now),
+    ).length;
 
     return { open, upcomingTwoWeeks, past, listed };
   }, [items]);
 
   const sourceLabel = useMemo(() => {
     const labels = Array.from(
-      new Set(items.map((item) => item.source_name).filter((value): value is string => Boolean(value && value.trim())))
+      new Set(
+        items
+          .map((item) => item.source_name)
+          .filter((value): value is string => Boolean(value && value.trim())),
+      ),
     );
     if (labels.length === 0) return "manual";
     if (labels.length <= 2) return labels.join(" + ");
@@ -140,7 +150,9 @@ export default function UserIpoSection() {
     <section className="glass-strong rounded-3xl border border-border p-5 shadow-[var(--shadow-soft)] lg:p-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">IPO Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            IPO Dashboard
+          </h2>
           <div className="mt-4 flex flex-wrap gap-2">
             {(["all", "mainboard", "sme"] as BoardFilter[]).map((tab) => (
               <button
@@ -164,8 +176,7 @@ export default function UserIpoSection() {
             <span className="font-semibold text-foreground">Source:</span> {sourceLabel}
           </p>
           <p className="mt-1">
-            <span className="font-semibold text-foreground">Last Sync:</span>{" "}
-            {latestSync ? new Date(latestSync.ran_at).toLocaleString() : "Not synced yet"}
+            <span className="font-semibold text-foreground">Updates:</span> Automatically refreshed
           </p>
         </div>
       </div>
@@ -180,7 +191,9 @@ export default function UserIpoSection() {
       <div className="mt-6 grid gap-4 xl:grid-cols-[1.7fr_1fr]">
         <div className="overflow-hidden rounded-2xl border border-border bg-card/90">
           <div className="flex items-center justify-between border-b border-border bg-muted/35 px-4 py-3">
-            <h3 className="text-2xl font-semibold text-foreground sm:text-3xl">Open, Upcoming, and Past IPOs</h3>
+            <h3 className="text-2xl font-semibold text-foreground sm:text-3xl">
+              Open, Upcoming, and Past IPOs
+            </h3>
             <span className="text-sm text-muted-foreground">{feedback}</span>
           </div>
 
@@ -205,10 +218,15 @@ export default function UserIpoSection() {
                   </tr>
                 ) : (
                   rows.map((row) => (
-                    <tr key={row.item.id} className="border-b border-border/60 text-foreground last:border-b-0">
+                    <tr
+                      key={row.item.id}
+                      className="border-b border-border/60 text-foreground last:border-b-0"
+                    >
                       <td className="px-4 py-3">
                         <div className="font-semibold text-foreground">{row.item.company_name}</div>
-                        <div className="mt-1 text-xs text-muted-foreground">{statusLabel(row.displayStatus)}</div>
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          {statusLabel(row.displayStatus)}
+                        </div>
                       </td>
                       <td className="px-4 py-3 capitalize">{row.board}</td>
                       <td className="px-4 py-3">{formatDate(row.item.issue_open_date)}</td>
