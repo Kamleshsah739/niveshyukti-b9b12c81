@@ -101,7 +101,7 @@ function CallbackPage() {
           return;
         }
         const access = await getAccessLevel(session.user.id);
-        window.location.replace(access === "premium" ? "/premium" : "/");
+        window.location.replace(access === "premium" ? "/premium" : "/dashboard");
       } catch (e) {
         console.error(e);
         window.location.replace("/auth/login");

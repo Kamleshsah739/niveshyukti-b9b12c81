@@ -195,6 +195,7 @@ function Nav() {
 
                 <DropdownMenuContent align="end">
                   {access === "premium" ? <DropdownMenuItem onClick={() => navigate({ to: "/premium" })}>Premium research</DropdownMenuItem> : null}
+                  <DropdownMenuItem onClick={() => navigate({ to: "/dashboard" })}>My research dashboard</DropdownMenuItem>
 
                   {role === "super_admin" ? (
                     <DropdownMenuItem onClick={() => navigate({ to: "/admin" })}>
