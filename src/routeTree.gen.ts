@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ScreenerRouteImport } from './routes/screener'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as IpoRouteImport } from './routes/ipo'
+import { Route as DisclosuresRouteImport } from './routes/disclosures'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
@@ -30,6 +31,11 @@ const PremiumRoute = PremiumRouteImport.update({
 const IpoRoute = IpoRouteImport.update({
   id: '/ipo',
   path: '/ipo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisclosuresRoute = DisclosuresRouteImport.update({
+  id: '/disclosures',
+  path: '/disclosures',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -56,6 +62,7 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/disclosures': typeof DisclosuresRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
   '/screener': typeof ScreenerRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/disclosures': typeof DisclosuresRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
   '/screener': typeof ScreenerRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/disclosures': typeof DisclosuresRoute
   '/ipo': typeof IpoRoute
   '/premium': typeof PremiumRoute
   '/screener': typeof ScreenerRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/disclosures'
     | '/ipo'
     | '/premium'
     | '/screener'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin'
+    | '/disclosures'
     | '/ipo'
     | '/premium'
     | '/screener'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/disclosures'
     | '/ipo'
     | '/premium'
     | '/screener'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  DisclosuresRoute: typeof DisclosuresRoute
   IpoRoute: typeof IpoRoute
   PremiumRoute: typeof PremiumRoute
   ScreenerRoute: typeof ScreenerRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/ipo'
       fullPath: '/ipo'
       preLoaderRoute: typeof IpoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disclosures': {
+      id: '/disclosures'
+      path: '/disclosures'
+      fullPath: '/disclosures'
+      preLoaderRoute: typeof DisclosuresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  DisclosuresRoute: DisclosuresRoute,
   IpoRoute: IpoRoute,
   PremiumRoute: PremiumRoute,
   ScreenerRoute: ScreenerRoute,

@@ -3,13 +3,13 @@ import { ArrowRight, Clock3, Newspaper } from "lucide-react";
 import { getPublishedMarketNews, type MarketNewsItem } from "@/lib/supabase/news";
 
 const fallbackNews: MarketNewsItem[] = [
-  { id: "market-outlook", category: "Market outlook", title: "The week ahead: key levels, events and sectors to watch", summary: "Our research desk maps the macro events, earnings themes and technical levels that could shape the week.", source_name: "Nivesh Yukti", source_url: "#research", published_at: null, image_url: null, featured: true, published: true },
-  { id: "company-update", category: "Company update", title: "What to look for in the next earnings season", summary: "A focused checklist for interpreting management commentary, margins and guidance without the noise.", source_name: "Nivesh Yukti", source_url: "#research", published_at: null, image_url: null, featured: false, published: true },
-  { id: "education", category: "Investor education", title: "How to read a recommendation and assess its risk", summary: "Understand time horizon, invalidation levels and why a research view is not a trade instruction.", source_name: "Nivesh Yukti", source_url: "#academy", published_at: null, image_url: null, featured: false, published: true },
+  { id: "screener-guide", category: "Investor guide", title: "How to use a stock screener", summary: "Start with business quality and valuation, then verify the latest figures in company filings before reaching a decision.", source_name: "Nivesh Yukti Learning", source_url: "#tools", published_at: null, image_url: null, featured: true, published: true },
+  { id: "ipo-guide", category: "Investor guide", title: "IPO checklist: what to verify before applying", summary: "Read the offer document, use of proceeds, price band, lot size and official exchange notices. An IPO listing gain is never guaranteed.", source_name: "Nivesh Yukti Learning", source_url: "#ipo", published_at: null, image_url: null, featured: false, published: true },
+  { id: "risk-guide", category: "Investor guide", title: "Build a simple risk checklist", summary: "Consider your time horizon, diversification, downside capacity and source quality instead of acting on a single number or headline.", source_name: "Nivesh Yukti Learning", source_url: "#academy", published_at: null, image_url: null, featured: false, published: true },
 ];
 
 function timeLabel(value: string | null): string {
-  if (!value) return "Research brief";
+  if (!value) return "Investor guide";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Latest update";
   return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(date);
@@ -28,9 +28,9 @@ export default function MarketNewsSection() {
     <section id="news" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-purple">News & Updates</div>
+          <div className="inline-flex items-center gap-1.5 rounded-full glass px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-purple">News & Investor Guides</div>
           <h2 className="mt-4 font-display text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">Market context, without the noise.</h2>
-          <p className="mt-4 text-base text-muted-foreground sm:text-lg">Curated market updates, research notes and investor education from our analyst desk.</p>
+          <p className="mt-4 text-base text-muted-foreground sm:text-lg">Published updates when available, plus clearly labelled investor education.</p>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-[1.35fr_1fr_1fr]">
           {items.map((item, index) => {

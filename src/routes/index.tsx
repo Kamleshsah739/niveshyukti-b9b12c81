@@ -64,7 +64,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Premium financial research platform. SEBI-compliant equity research, IPO analysis and research-only research on stocks, F&O and commodities.",
+          "Indian-market research tools, end-of-day stock screening, IPO tracking and educational market updates. For information and research only; not investment advice.",
       },
     ],
   }),
@@ -73,16 +73,12 @@ export const Route = createFileRoute("/")({
 
 const NAV = [
   { label: "Home", href: "#home" },
-  { label: "Research", href: "#research" },
   { label: "Screener", href: "/screener" },
   { label: "Investor Tools", href: "#tools" },
   { label: "News & Updates", href: "#news" },
   { label: "IPO", href: "#ipo" },
-  { label: "Performance", href: "#performance" },
-  { label: "Pricing", href: "#pricing" },
   { label: "Academy", href: "#academy" },
   { label: "About", href: "#about" },
-  { label: "Community", href: "#Community" },
 ];
 
 function Logo() {
@@ -299,10 +295,10 @@ function Nav() {
 }
 
 const TRUST = [
-  { icon: ShieldCheck, label: "SEBI Compliant Research" },
-  { icon: BadgeCheck, label: "NISM Certified Analyst" },
+  { icon: ShieldCheck, label: "Research-first platform" },
+  { icon: BadgeCheck, label: "Independent decision-making" },
   { icon: Zap, label: "Research Only — No Execution" },
-  { icon: Radio, label: "Live IPO Tracking" },
+  { icon: Radio, label: "IPO tracker" },
 ];
 
 function Hero() {
@@ -317,7 +313,7 @@ function Hero() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-cyan opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-brand-cyan" />
                 </span>
-                SEBI Registered Advisory
+                Indian-market research tools
               </div>
 
               <h1 className="mt-4 font-display text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-4xl lg:text-6xl">
@@ -327,7 +323,7 @@ function Hero() {
               </h1>
 
               <p className="mt-4 max-w-xl text-sm leading-6 text-white/78 sm:text-base">
-                Independent research, market news, IPO analysis and timely recommendations for Indian investors. We never execute trades or handle your money.
+                Market research, IPO tracking, end-of-day screening and educational updates for Indian investors. We never execute trades or handle your money.
               </p>
 
               <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -336,8 +332,8 @@ function Hero() {
                   size="lg"
                   className="rounded-full bg-brand-blue px-5 text-sm text-white shadow-[var(--shadow-glow)] hover:bg-brand-blue/90"
                 >
-                  <a href="#research">
-                    Explore Research <ArrowRight className="ml-1 h-4 w-4" />
+                  <a href="/screener">
+                    Open stock screener <ArrowRight className="ml-1 h-4 w-4" />
                   </a>
                 </Button>
 
@@ -521,8 +517,8 @@ function SectionHeader({
 const WHY = [
   {
     icon: ShieldCheck,
-    title: "SEBI-Compliant Research",
-    desc: "Every call is backed by rigorous analysis and full regulatory compliance.",
+    title: "Research, not execution",
+    desc: "Use the data and research tools to make your own decisions through your chosen regulated intermediary.",
   },
   {
     icon: LineChart,
@@ -531,18 +527,18 @@ const WHY = [
   },
   {
     icon: Radio,
-    title: "Real-Time Alerts",
-    desc: "Instant push, WhatsApp alerts when the market moves.",
+    title: "Scheduled market updates",
+    desc: "IPO, news and end-of-day market data refresh automatically when sources are available.",
   },
   {
     icon: Target,
-    title: "Transparent Performance",
-    desc: "Every closed call is public. No cherry-picked screenshots.",
+    title: "Clear source labelling",
+    desc: "Each data feature identifies its source and shows when information may be delayed or unavailable.",
   },
   {
     icon: Users,
-    title: "1,000+ Investor Community",
-    desc: "Learn, share and grow with a curated community of serious investors.",
+    title: "Investor education",
+    desc: "Practical guides help you understand fundamentals, technicals, IPOs and risk before you act.",
   },
 ];
 
@@ -553,7 +549,7 @@ function Why() {
         <SectionHeader
           eyebrow="Why Nivesh Yukti"
           title="Built for investors who take investing seriously."
-          desc="A premium research desk in your pocket — combining professional analysis with instant execution."
+          desc="Research tools, IPO tracking and investor education designed to support independent decisions."
         />
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {WHY.map(({ icon: Icon, title, desc }) => (
@@ -970,12 +966,13 @@ function Academy() {
               </h2>
               <p className="mt-4 max-w-lg text-muted-foreground">
                 Bite-sized courses on fundamentals, technicals, options and IPO
-                investing — taught by NISM certified analysts.
+                investing — presented as general educational material, not
+                personalised investment advice.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Button asChild className="rounded-full bg-gradient-brand text-white hover:opacity-95">
-                  <a href="#academy">
-                    Browse Courses <BookOpen className="ml-1 h-4 w-4" />
+                  <a href="#tools">
+                    Explore investor tools <BookOpen className="ml-1 h-4 w-4" />
                   </a>
                 </Button>
                 <Button
@@ -983,7 +980,7 @@ function Academy() {
                   variant="outline"
                   className="rounded-full border-2 bg-white/60"
                 >
-                  <a href="#Community">Join Nivesh Yukti</a>
+                  <a href="/screener">Open stock screener</a>
                 </Button>
               </div>
             </div>
@@ -1015,24 +1012,24 @@ function Academy() {
 
 const FAQS = [
   {
-    q: "Is Nivesh Yukti SEBI registered?",
-    a: "Yes. All our research is published under SEBI Research Analyst compliance and is delivered by NISM-certified analysts.",
+    q: "Is this personalised investment advice?",
+    a: "No. The website provides general market information, research tools and educational content. It does not assess your financial situation or execute transactions for you.",
   },
   {
     q: "How do I act on research?",
-    a: "Apply the recommendation through your broker or trading app — we publish the research, you place the trade.",
+    a: "Use research as one input only. Verify figures using company filings and official exchange notices, consider your own risk tolerance, and consult a qualified professional when needed.",
   },
   {
-    q: "Are past performance figures verified?",
-    a: "Every closed call is timestamped and published on our public performance page. No cherry-picking, no screenshots.",
+    q: "How current is market data?",
+    a: "The screener and IPO tracker use scheduled free data feeds. Coverage can be delayed or incomplete, so figures should always be verified before making a decision.",
   },
   {
-    q: "Can I cancel my Premium plan anytime?",
-    a: "Absolutely. Plans are month-on-month with no long-term lock-in. Cancel from your dashboard anytime.",
+    q: "Can I buy a subscription on the website?",
+    a: "Online payment and subscription management are not active yet. Create an account to access available platform features; no charge is taken through this website.",
   },
   {
-    q: "Do you offer 1-on-1 support?",
-    a: "Yes — Elite subscribers get direct analyst calls and research-focused strategy consultations.",
+    q: "Can I rely on the website for a buy or sell decision?",
+    a: "No. Prices, metrics and IPO information can be delayed, incomplete or change without notice. They are research aids, not a recommendation, guarantee or substitute for independent verification.",
   },
 ];
 
@@ -1164,16 +1161,16 @@ function CTA() {
 function Footer() {
   const cols = [
     {
-      title: "Product",
-      items: ["Research", "IPO", "Performance", "Pricing", "Academy"],
+      title: "Explore",
+      items: ["Research", "Screener", "IPO", "Academy"],
     },
     {
-      title: "Company",
-      items: ["About", "Careers", "Press", "Contact", "Blog"],
+      title: "Platform",
+      items: ["About", "News", "Investor tools"],
     },
     {
-      title: "Legal",
-      items: ["Terms", "Privacy", "Disclosure", "SEBI Reg", "Refund Policy"],
+      title: "Important",
+      items: ["Disclosures"],
     },
   ];
   return (
@@ -1184,8 +1181,9 @@ function Footer() {
             <div>
               <Logo />
               <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-                Nivesh Yukti is a premium financial research platform. SEBI
-                compliant. NISM certified. Investor first.
+                Independent Indian-market research tools and educational
+                content. The platform does not execute trades or provide
+                personalised investment advice.
               </p>
               <p className="mt-4 text-[11px] text-muted-foreground">
                 Investments in securities market are subject to market risks.
@@ -1235,18 +1233,12 @@ function Landing() {
       <ResearchSignupPrompt />
       <main>
         <Hero />
-        <Stats />
         <Why />
-        <Research />
         <InvestorToolsHub />
         <MarketNewsSection />
         <IPO />
-        <Performance />
-        <Pricing />
-        <Testimonials />
         <Academy />
         <FAQ />
-        <CTA />
       </main>
       <Footer />
     </div>
@@ -1255,21 +1247,13 @@ function Landing() {
 
 function footerLink(item: string): string {
   const links: Record<string, string> = {
-    Research: "#research",
+    Screener: "/screener",
     IPO: "#ipo",
-    Performance: "#performance",
-    Pricing: "#pricing",
     Academy: "#academy",
     About: "#about",
-    Contact: "#contact",
-    Terms: "#contact",
-    Privacy: "#contact",
-    Disclosure: "#contact",
-    "SEBI Reg": "#contact",
-    "Refund Policy": "#contact",
-    Careers: "mailto:careers@niveshyukti.com",
-    Press: "mailto:press@niveshyukti.com",
-    Blog: "#home",
+    News: "#news",
+    "Investor tools": "#tools",
+    Disclosures: "/disclosures",
     Product: "#home",
     Company: "#about",
     Legal: "#contact",
