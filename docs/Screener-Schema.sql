@@ -29,5 +29,10 @@ alter table public.stock_screener_metrics enable row level security;
 create policy "Public can read stock screener metrics"
   on public.stock_screener_metrics for select using (true);
 
+-- The scheduled Worker updates calculated technical metrics with service_role.
+grant usage on schema public to service_role;
+grant select, insert, update on public.stock_screener_metrics to service_role;
+grant select on public.stock_screener_metrics to anon, authenticated;
+
 -- Import/update metrics using your licensed or permitted EOD provider.
 -- Store symbols exactly as in stock_snapshots, for example RELIANCE.NS.
