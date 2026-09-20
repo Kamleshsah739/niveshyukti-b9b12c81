@@ -50,6 +50,12 @@ grant select, insert, update, delete on public.ipo_entries to authenticated;
 grant select on public.ipo_sync_runs to authenticated;
 grant insert on public.ipo_sync_runs to authenticated;
 
+-- The Cloudflare Worker uses the Supabase service_role key for automatic sync.
+-- Explicit grants are required on projects where service_role has no table privileges.
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.ipo_entries to service_role;
+grant select, insert on public.ipo_sync_runs to service_role;
+
 -- Public users can read only published IPO entries.
 drop policy if exists "Public read published IPO" on public.ipo_entries;
 create policy "Public read published IPO"
