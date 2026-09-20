@@ -44,7 +44,9 @@ export async function getScreenerStocks(): Promise<ScreenerStock[]> {
   if (snapshotsResult.error) throw snapshotsResult.error;
   if (metricsResult.error) throw metricsResult.error;
 
-  const metricsBySymbol = new Map((metricsResult.data ?? []).map((metric) => [metric.symbol, metric]));
+  const metricsBySymbol = new Map(
+    (metricsResult.data ?? []).map((metric) => [metric.symbol, metric]),
+  );
   return (snapshotsResult.data ?? []).map((snapshot) => {
     const metric = metricsBySymbol.get(snapshot.symbol) ?? {};
     return {
@@ -70,7 +72,21 @@ export async function getScreenerStocks(): Promise<ScreenerStock[]> {
       sma200: numberOrNull(metric.sma_200),
       fiftyTwoWeekHigh: numberOrNull(metric.fifty_two_week_high),
       fiftyTwoWeekLow: numberOrNull(metric.fifty_two_week_low),
-      fundamentalsAsOf: typeof metric.fundamentals_as_of === "string" ? metric.fundamentals_as_of : null,
+      fundamentalsAsOf:
+        typeof metric.fundamentals_as_of === "string" ? metric.fundamentals_as_of : null,
     };
   });
+}
+
+export async function getScreenerUniverseCount(): Promise<number | null> {
+  const { count, error } = await supabase
+    .from("stock_universe")
+    .select("symbol", { count: "exact", head: true })
+    .eq("exchange", "NSE")
+    .eq("active", true);
+
+  // The universe table is introduced after the original screener schema. Keep
+  // the existing screener usable until the one-time migration is run.
+  if (error) return null;
+  return count ?? 0;
 }
