@@ -52,7 +52,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import UserIpoSection from "@/components/ipo/UserIpoSection";
-import StockResearchHub from "@/components/dashboard/StockResearchHub";
 import HomeRecommendationCarousel from "@/components/landing/HomeRecommendationCarousel";
 import InvestorToolsHub from "@/components/landing/InvestorToolsHub";
 import ResearchSignupPrompt from "@/components/landing/ResearchSignupPrompt";
@@ -643,7 +642,6 @@ function Research() {
           ))}
         </div>
         <div className="mt-8">
-          <StockResearchHub />
         </div>
       </div>
     </section>
