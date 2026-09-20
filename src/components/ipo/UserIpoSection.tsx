@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarDays, CircleCheck, Info, Landmark, RefreshCw } from "lucide-react";
+import {
+  CalendarDays,
+  CircleCheck,
+  ExternalLink,
+  Info,
+  Landmark,
+  RefreshCw,
+  Search,
+  X,
+} from "lucide-react";
 import { getPublishedIpos, type IpoRecord } from "@/lib/supabase/ipo";
 import { supabase } from "@/lib/supabase/client";
 
@@ -20,6 +29,8 @@ export default function UserIpoSection() {
   const [items, setItems] = useState<IpoRecord[]>([]);
   const [boardFilter, setBoardFilter] = useState<BoardFilter>("all");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedIpo, setSelectedIpo] = useState<DisplayRow | null>(null);
   const [feedback, setFeedback] = useState("Loading IPO dashboard...");
 
   useEffect(() => {
@@ -92,7 +103,14 @@ export default function UserIpoSection() {
       })
       .filter((value): value is DisplayRow => value !== null)
       .filter((row) => boardFilter === "all" || row.board === boardFilter)
-      .filter((row) => viewFilter === "all" || row.displayStatus === viewFilter);
+      .filter((row) => viewFilter === "all" || row.displayStatus === viewFilter)
+      .filter((row) => {
+        const needle = searchQuery.trim().toLowerCase();
+        return (
+          !needle ||
+          `${row.item.company_name} ${row.item.symbol ?? ""}`.toLowerCase().includes(needle)
+        );
+      });
 
     const openMainboard = mapped
       .filter((row) => row.displayStatus === "open" && row.board === "mainboard")
@@ -121,7 +139,7 @@ export default function UserIpoSection() {
 
     // Required order: open (mainboard first), then upcoming next 2 weeks, then past IPOs.
     return [...openMainboard, ...openSme, ...upcomingTwoWeeks, ...past];
-  }, [boardFilter, items, viewFilter]);
+  }, [boardFilter, items, searchQuery, viewFilter]);
 
   const stats = useMemo(() => {
     const now = startOfToday();
@@ -164,22 +182,6 @@ export default function UserIpoSection() {
             See what is open now, what is coming next, and recently listed issues. This is
             information for research—not an application recommendation.
           </p>
-          <div className="mt-4 flex flex-wrap gap-2" aria-label="Filter by board">
-            {(["all", "mainboard", "sme"] as BoardFilter[]).map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setBoardFilter(tab)}
-                className={`rounded-full px-5 py-2 text-base font-semibold capitalize ${
-                  boardFilter === tab
-                    ? "bg-gradient-brand text-white shadow-[var(--shadow-soft)]"
-                    : "border border-border bg-card/80 text-foreground/75 hover:bg-card hover:text-foreground"
-                }`}
-              >
-                {tab === "all" ? "All boards" : `${tab === "sme" ? "SME" : "Mainboard"} IPOs`}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="rounded-2xl border border-border bg-card/85 px-4 py-3 text-sm text-foreground">
@@ -187,6 +189,53 @@ export default function UserIpoSection() {
             <RefreshCw className="h-4 w-4 text-brand-blue" /> Updated automatically
           </p>
           <p className="mt-1 text-xs text-muted-foreground">Free sources: {sourceLabel}</p>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-border bg-card/80 p-4 shadow-sm">
+        <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+          <Search className="h-4 w-4 text-brand-blue" /> Find an IPO
+        </div>
+        <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_180px_190px_auto]">
+          <label className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="w-full rounded-lg border border-input bg-background py-2.5 pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              placeholder="Search company or symbol"
+            />
+          </label>
+          <select
+            value={boardFilter}
+            onChange={(event) => setBoardFilter(event.target.value as BoardFilter)}
+            className="rounded-lg border border-input bg-background px-3 py-2.5 text-sm"
+          >
+            <option value="all">All boards</option>
+            <option value="mainboard">Mainboard</option>
+            <option value="sme">SME</option>
+          </select>
+          <select
+            value={viewFilter}
+            onChange={(event) => setViewFilter(event.target.value as ViewFilter)}
+            className="rounded-lg border border-input bg-background px-3 py-2.5 text-sm"
+          >
+            <option value="all">All statuses</option>
+            <option value="open">Open now</option>
+            <option value="upcoming">Upcoming</option>
+            <option value="past">Closed / past</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery("");
+              setBoardFilter("all");
+              setViewFilter("all");
+            }}
+            className="rounded-lg px-3 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+          >
+            Clear filters
+          </button>
         </div>
       </div>
 
@@ -222,7 +271,9 @@ export default function UserIpoSection() {
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-muted/35 px-4 py-3">
             <div>
               <h3 className="text-xl font-semibold text-foreground">IPO calendar</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">{feedback}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {rows.length} result{rows.length === 1 ? "" : "s"} · Click an IPO for full details
+              </p>
             </div>
             {viewFilter !== "all" ? (
               <button
@@ -258,7 +309,17 @@ export default function UserIpoSection() {
                   rows.map((row) => (
                     <tr
                       key={row.item.id}
-                      className="border-b border-border/60 text-foreground last:border-b-0"
+                      className="cursor-pointer border-b border-border/60 text-foreground transition hover:bg-muted/50 last:border-b-0"
+                      onClick={() => setSelectedIpo(row)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedIpo(row);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`View details for ${row.item.company_name}`}
                     >
                       <td className="px-4 py-3">
                         <div className="font-semibold text-foreground">{row.item.company_name}</div>
@@ -313,7 +374,108 @@ export default function UserIpoSection() {
           </div>
         </aside>
       </div>
+
+      {selectedIpo ? <IpoDetails row={selectedIpo} onClose={() => setSelectedIpo(null)} /> : null}
     </section>
+  );
+}
+
+function IpoDetails({ row, onClose }: { row: DisplayRow; onClose: () => void }) {
+  const { item } = row;
+  const details: Array<[string, string | null]> = [
+    ["Symbol", item.symbol],
+    ["Board", row.board === "sme" ? "SME" : "Mainboard"],
+    ["Open date", formatDate(item.issue_open_date)],
+    ["Close date", formatDate(item.issue_close_date)],
+    ["Listing date", formatDate(item.listing_date)],
+    ["Price band", item.price_band],
+    ["Lot size", item.lot_size],
+    ["Issue size", item.issue_size],
+    ["GMP", item.gmp],
+    ["Subscription", item.subscription],
+    ["Merchant banker", item.merchant_banker],
+    ["Anchor investors", item.anchor_investors],
+  ];
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:justify-center sm:p-5"
+      role="presentation"
+      onMouseDown={onClose}
+    >
+      <article
+        className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-5 shadow-2xl sm:rounded-3xl sm:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ipo-detail-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p
+              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${statusTone(row.displayStatus)}`}
+            >
+              {statusLabel(row.displayStatus)}
+            </p>
+            <h3
+              id="ipo-detail-title"
+              className="mt-3 text-2xl font-bold text-foreground sm:text-3xl"
+            >
+              {item.company_name}
+            </h3>
+            {item.symbol ? (
+              <p className="mt-1 text-sm text-muted-foreground">{item.symbol}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full border border-border p-2 text-muted-foreground hover:bg-muted hover:text-foreground"
+            aria-label="Close IPO details"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        {item.summary ? (
+          <p className="mt-4 rounded-xl bg-muted/50 p-3 text-sm leading-6 text-muted-foreground">
+            {item.summary}
+          </p>
+        ) : null}
+        <dl className="mt-5 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+          {details.map(([label, value]) => (
+            <div key={label} className="border-b border-border pb-3">
+              <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {label}
+              </dt>
+              <dd className="mt-1 text-sm font-medium text-foreground">
+                {value || "Not available"}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        {item.my_recommendation ? (
+          <div className="mt-5 rounded-xl border border-brand-blue/25 bg-brand-blue/5 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-brand-blue">
+              Research note
+            </p>
+            <p className="mt-1 text-sm leading-6 text-foreground">{item.my_recommendation}</p>
+          </div>
+        ) : null}
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4 text-xs text-muted-foreground">
+          <span>Source: {item.source_name ?? "Market feed"}</span>
+          {item.external_url ? (
+            <a
+              href={item.external_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 font-semibold text-brand-blue hover:underline"
+            >
+              View source <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          ) : null}
+        </div>
+      </article>
+    </div>
   );
 }
 
