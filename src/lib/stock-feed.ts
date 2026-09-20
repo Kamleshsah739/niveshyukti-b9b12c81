@@ -16,9 +16,7 @@ export async function runStockFeedSync(runtime: Runtime) {
   const db = createClient(url, key);
 
   const results = await Promise.all(symbols.map(async (symbol) => {
-    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d`);
-    if (!response.ok) throw new Error(`Yahoo Finance request failed for ${symbol}`);
-    const payload = await response.json() as {
+    const payload = await fetchYahooChart(symbol) as {
       chart?: {
         result?: Array<{
           meta?: Record<string, unknown>;
@@ -75,6 +73,27 @@ export async function runStockFeedSync(runtime: Runtime) {
   );
   if (metricsError && metricsError.code !== "42P01") throw metricsError;
   return { synced: results.length, source: "yahoo_finance" };
+}
+
+async function fetchYahooChart(symbol: string): Promise<unknown> {
+  const path = `/v8/finance/chart/${encodeURIComponent(symbol)}?range=1y&interval=1d`;
+  const headers = {
+    Accept: "application/json",
+    "User-Agent": "Mozilla/5.0 (compatible; NiveshYuktiResearch/1.0; +https://niveshyukti.com)",
+  };
+  const failures: string[] = [];
+
+  for (const host of ["query1.finance.yahoo.com", "query2.finance.yahoo.com"]) {
+    try {
+      const response = await fetch(`https://${host}${path}`, { headers });
+      if (response.ok) return response.json();
+      failures.push(`${host}: HTTP ${response.status}`);
+    } catch (error) {
+      failures.push(`${host}: ${error instanceof Error ? error.message : "network error"}`);
+    }
+  }
+
+  throw new Error(`Yahoo Finance request failed for ${symbol} (${failures.join("; ")})`);
 }
 
 function average(values: number[]): number | null {
