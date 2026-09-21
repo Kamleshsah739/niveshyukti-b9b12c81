@@ -40,7 +40,14 @@ export async function runStockFeedSync(runtime: Runtime) {
   if (universeProbe.error?.code === "42P01") return runStarterSync(db);
   if (universeProbe.error) throw universeProbe.error;
 
-  const imported = await refreshNseUniverse(db);
+  // A temporary NSE archive/CDN failure must not stop updates for symbols that
+  // were already imported successfully on an earlier run.
+  let imported = 0;
+  try {
+    imported = await refreshNseUniverse(db);
+  } catch (error) {
+    console.error("NSE universe refresh skipped; using the existing universe", error);
+  }
   const { data: queued, error: queueError } = await db
     .from("stock_universe")
     .select("symbol, name, exchange")

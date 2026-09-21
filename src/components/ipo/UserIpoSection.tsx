@@ -24,12 +24,14 @@ type DisplayRow = {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+const PAGE_SIZE = 10;
 
 export default function UserIpoSection() {
   const [items, setItems] = useState<IpoRecord[]>([]);
   const [boardFilter, setBoardFilter] = useState<BoardFilter>("all");
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [selectedIpo, setSelectedIpo] = useState<DisplayRow | null>(null);
   const [feedback, setFeedback] = useState("Loading IPO dashboard...");
 
@@ -140,6 +142,14 @@ export default function UserIpoSection() {
     // Required order: open (mainboard first), then upcoming next 2 weeks, then past IPOs.
     return [...openMainboard, ...openSme, ...upcomingTwoWeeks, ...past];
   }, [boardFilter, items, searchQuery, viewFilter]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [boardFilter, searchQuery, viewFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const visibleRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const stats = useMemo(() => {
     const now = startOfToday();
@@ -272,7 +282,7 @@ export default function UserIpoSection() {
             <div>
               <h3 className="text-xl font-semibold text-foreground">IPO calendar</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {rows.length} result{rows.length === 1 ? "" : "s"} · Click an IPO for full details
+                {rows.length} result{rows.length === 1 ? "" : "s"} · Page {currentPage} of {totalPages} · Click an IPO for full details
               </p>
             </div>
             {viewFilter !== "all" ? (
@@ -306,7 +316,7 @@ export default function UserIpoSection() {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row) => (
+                  visibleRows.map((row) => (
                     <tr
                       key={row.item.id}
                       className="cursor-pointer border-b border-border/60 text-foreground transition hover:bg-muted/50 last:border-b-0"
@@ -345,6 +355,18 @@ export default function UserIpoSection() {
               </tbody>
             </table>
           </div>
+          {rows.length > PAGE_SIZE ? (
+            <div className="flex items-center justify-between gap-3 border-t border-border bg-muted/20 px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, rows.length)} of {rows.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button type="button" onClick={() => setPage((value) => Math.max(1, value - 1))} disabled={currentPage === 1} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-45">Previous</button>
+                <span className="text-xs font-semibold text-muted-foreground">{currentPage} / {totalPages}</span>
+                <button type="button" onClick={() => setPage((value) => Math.min(totalPages, value + 1))} disabled={currentPage === totalPages} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-45">Next</button>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <aside className="rounded-2xl border border-border bg-card/90 p-5">

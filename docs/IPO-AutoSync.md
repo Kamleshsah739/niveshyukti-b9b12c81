@@ -64,14 +64,13 @@ Optional start schedule:
 - Every day: 07:00 to 20:00 IST
 - Interval: 30-60 min
 
-## 2B) Cloudflare Worker Cron Trigger
+## 2B) Cloudflare Worker Cron Trigger (recommended)
 
 If deployed on Cloudflare Workers, configure a Cron Trigger in the dashboard:
 
-- Route/URL target: `https://<your-domain>/api/ipo-sync`
-- Method: `POST`
-- Header: `x-sync-token: <IPO_SYNC_TOKEN>`
-- Recommended cron: `*/30 * * * *` during market-active windows
+- Cron expression: `*/30 * * * *`
+
+The Worker Cron invokes the deployed Worker `scheduled()` handler directly. It runs IPO, stock and news syncs together, so there is no URL target or header to enter in Cloudflare.
 
 Use health check endpoint before enabling cron:
 
