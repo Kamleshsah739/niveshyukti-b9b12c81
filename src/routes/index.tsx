@@ -8,7 +8,7 @@ import {
 
 import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import {
   createFileRoute,
@@ -51,12 +51,15 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import UserIpoSection from "@/components/ipo/UserIpoSection";
 import HomeRecommendationCarousel from "@/components/landing/HomeRecommendationCarousel";
-import InvestorToolsHub from "@/components/landing/InvestorToolsHub";
 import ResearchSignupPrompt from "@/components/landing/ResearchSignupPrompt";
-import MarketNewsSection from "@/components/landing/MarketNewsSection";
 import { getAccessLevel, type AccessLevel } from "@/lib/access";
+
+// These data-driven sections are below the first screen. Loading them only
+// when React reaches them keeps the first visit responsive on slower phones.
+const UserIpoSection = lazy(() => import("@/components/ipo/UserIpoSection"));
+const InvestorToolsHub = lazy(() => import("@/components/landing/InvestorToolsHub"));
+const MarketNewsSection = lazy(() => import("@/components/landing/MarketNewsSection"));
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -728,9 +731,9 @@ function IPO() {
   return (
     <section id="ipo" className="py-8 md:py-12">
       <div className="mx-auto max-w-7xl px-4">
-        <div>
+        <Suspense fallback={<SectionLoading label="Loading IPO tracker" />}>
           <UserIpoSection />
-        </div>
+        </Suspense>
       </div>
     </section>
   );
@@ -1235,13 +1238,25 @@ function Landing() {
       <main>
         <Hero />
         <Why />
-        <InvestorToolsHub />
-        <MarketNewsSection />
+        <Suspense fallback={<SectionLoading label="Loading investor tools" />}>
+          <InvestorToolsHub />
+        </Suspense>
+        <Suspense fallback={<SectionLoading label="Loading market updates" />}>
+          <MarketNewsSection />
+        </Suspense>
         <IPO />
         <Academy />
         <FAQ />
       </main>
       <Footer />
+    </div>
+  );
+}
+
+function SectionLoading({ label }: { label: string }) {
+  return (
+    <div className="mx-auto my-8 max-w-7xl animate-pulse rounded-3xl border border-border bg-card/70 p-6 text-sm font-medium text-muted-foreground">
+      {label}…
     </div>
   );
 }

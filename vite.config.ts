@@ -36,6 +36,22 @@ export default defineConfig({
     build: {
       outDir: "dist",
       emptyOutDir: true,
+      // Keep framework, authentication and UI code out of the landing-page
+      // route chunk. Browsers can download these cacheable files in parallel
+      // and only parse feature code when its route is opened.
+      rolldownOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (!id.includes("node_modules")) return undefined;
+            if (id.includes("react-dom") || id.includes("/react/")) return "vendor-react";
+            if (id.includes("@tanstack")) return "vendor-tanstack";
+            if (id.includes("@supabase")) return "vendor-supabase";
+            if (id.includes("@radix-ui")) return "vendor-radix";
+            if (id.includes("lucide-react")) return "vendor-icons";
+            return undefined;
+          },
+        },
+      },
     },
   },
 });
